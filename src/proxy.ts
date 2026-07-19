@@ -8,6 +8,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const PROTECTED_PATHS = [
   "/dashboard",
   "/onboarding",
+  "/github",
   "/history",
   "/settings",
   "/tasks",

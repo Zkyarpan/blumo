@@ -53,7 +53,7 @@ export function GitHubConnectionCard() {
         </div>
 
         <Link
-          href="/settings"
+          href="/github/connect"
           className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors w-full justify-center"
           style={{
             backgroundColor: "var(--bg-subtle)",

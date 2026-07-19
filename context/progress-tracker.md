@@ -10,11 +10,11 @@ Update this file after every meaningful implementation change.
 - Unit 03: Core Database Schema and RLS — complete.
 - Unit 04: Authenticated Onboarding — complete and merged into main.
 - Unit 05: Authenticated Dashboard Shell — complete and merged into main.
-- **Unit 06: GitHub App Registration and Installation Start — planning.**
+- **Unit 06: GitHub App Registration and Installation Start — complete.**
 
 ## Current Goal
 
-- Write the Unit 06 specification: GitHub App registration and installation start.
+- Begin Unit 07: GitHub App setup callback (installation storage).
 
 ## Completed
 
@@ -92,6 +92,18 @@ Update this file after every meaningful implementation change.
 - `src/features/onboarding/onboarding.service.test.ts` — 6 service/action tests (including unauthenticated case).
 - Total test count: 26 (up from 10). All pass.
 - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass (no warnings).
+- **Unit 06 complete**: GitHub App installation start page implemented.
+- `src/lib/env/server.ts` extended with 6 GitHub App env vars (`GITHUB_APP_ID`, `GITHUB_APP_SLUG`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET` optional, `GITHUB_APP_CLIENT_ID` optional, `GITHUB_APP_CLIENT_SECRET` optional).
+- `src/lib/github/github-app.config.ts` — server-only config loader; normalises `\\n` → real newlines in private key.
+- `src/lib/github/installation-url.ts` — pure server-only URL builder for GitHub App installation.
+- `src/app/(app)/github/connect/page.tsx` — Server Component with auth + onboarding redirect guards.
+- `src/app/(app)/github/connect/loading.tsx` — skeleton matching page layout shape.
+- `src/features/github/ConnectGitHubPage.tsx` — Server Component, receives `installationUrl` prop only.
+- `src/features/github/ConnectGitHubButton.tsx` — `"use client"`, uses `window.location.href` for GitHub redirect.
+- `/github` added to `PROTECTED_PATHS` in `src/proxy.ts`.
+- `src/features/dashboard/GitHubConnectionCard.tsx` "Connect GitHub →" link updated to `/github/connect`.
+- `src/app/(app)/settings/page.tsx` copy updated to reference dashboard for GitHub connection.
+- 6 new tests (38 total). All pass. `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass.
 - **Unit 05 complete**: Authenticated dashboard shell implemented.
 - `src/features/dashboard/` feature module created: `dashboard.service.ts`, `DashboardShell.tsx`, `GoalSummaryCard.tsx`, `MissionCard.tsx`, `GitHubConnectionCard.tsx`, `ProgressSummaryCard.tsx`, `RecentActivitySection.tsx`.
 - `src/components/layout/AppSidebar.tsx` — fixed left sidebar (`lg` and wider), `usePathname()` active state, `aria-current="page"`.
@@ -107,11 +119,11 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- Unit 06 specification: `context/specs/06-github-app-installation-start.md`.
+- None.
 
 ## Next Up
 
-1. Implement Unit 06 after the specification is reviewed and merged.
+1. Unit 07: GitHub App setup callback (`/api/github/setup`) — store installation, redirect to repository selection.
 
 ## Open Questions
 

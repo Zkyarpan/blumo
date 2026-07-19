@@ -26,6 +26,24 @@ const serverEnvSchema = z.object({
   SUPABASE_SECRET_KEY: z
     .string()
     .min(1, "SUPABASE_SECRET_KEY is required"),
+
+  // GitHub App (Unit 06)
+  GITHUB_APP_ID: z
+    .string()
+    .min(1, "GITHUB_APP_ID is required")
+    .regex(/^\d+$/, "GITHUB_APP_ID must be a numeric string"),
+  GITHUB_APP_SLUG: z
+    .string()
+    .min(1, "GITHUB_APP_SLUG is required"),
+  GITHUB_APP_PRIVATE_KEY: z
+    .string()
+    .min(1, "GITHUB_APP_PRIVATE_KEY is required"),
+  // Webhook secret is required in production (Unit 09); allow empty locally
+  // until the operator sets a value, so startup is not blocked during dev.
+  GITHUB_WEBHOOK_SECRET: z.string().optional(),
+  // Optional until Unit 07
+  GITHUB_APP_CLIENT_ID: z.string().optional(),
+  GITHUB_APP_CLIENT_SECRET: z.string().optional(),
 });
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -41,6 +59,12 @@ function parseServerEnv(): ServerEnv {
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
+    GITHUB_APP_ID: process.env.GITHUB_APP_ID,
+    GITHUB_APP_SLUG: process.env.GITHUB_APP_SLUG,
+    GITHUB_APP_PRIVATE_KEY: process.env.GITHUB_APP_PRIVATE_KEY,
+    GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET,
+    GITHUB_APP_CLIENT_ID: process.env.GITHUB_APP_CLIENT_ID,
+    GITHUB_APP_CLIENT_SECRET: process.env.GITHUB_APP_CLIENT_SECRET,
   });
 
   if (!result.success) {
