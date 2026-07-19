@@ -9,11 +9,11 @@ Update this file after every meaningful implementation change.
 - Unit 02: Supabase Auth — complete.
 - Unit 03: Core Database Schema and RLS — complete.
 - Unit 04: Authenticated Onboarding — complete and merged into main.
-- **Unit 05: Dashboard Shell — planning.**
+- **Unit 05: Dashboard Shell — complete.**
 
 ## Current Goal
 
-- Write and review the Unit 05 Dashboard Shell specification.
+- Begin Unit 06: GitHub App Registration and Installation Start.
 
 ## Completed
 
@@ -91,14 +91,26 @@ Update this file after every meaningful implementation change.
 - `src/features/onboarding/onboarding.service.test.ts` — 6 service/action tests (including unauthenticated case).
 - Total test count: 26 (up from 10). All pass.
 - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass (no warnings).
+- **Unit 05 complete**: Authenticated dashboard shell implemented.
+- `src/features/dashboard/` feature module created: `dashboard.service.ts`, `DashboardShell.tsx`, `GoalSummaryCard.tsx`, `MissionCard.tsx`, `GitHubConnectionCard.tsx`, `ProgressSummaryCard.tsx`, `RecentActivitySection.tsx`.
+- `src/components/layout/AppSidebar.tsx` — fixed left sidebar (`lg` and wider), `usePathname()` active state, `aria-current="page"`.
+- `src/components/layout/MobileNav.tsx` — Sheet-based mobile navigation, hamburger trigger, closes on link click.
+- `src/components/layout/AppHeader.tsx` — nav links removed; `MobileNav` slot added; wordmark, user info, sign-out preserved.
+- `src/app/(app)/layout.tsx` — `AppSidebar` added, `lg:pl-56` on `<main>`.
+- `src/app/(app)/dashboard/page.tsx` — replaced placeholder with real data fetch, redirect logic, `DashboardShell` render.
+- `src/app/(app)/dashboard/loading.tsx` — skeleton matching dashboard layout shape.
+- `src/app/(app)/tasks/page.tsx`, `history/page.tsx`, `settings/page.tsx` — placeholder pages.
+- `src/features/dashboard/dashboard.service.test.ts` — 6 new tests.
+- Total test count: 32 (up from 26). All pass.
+- `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass (no warnings).
 
 ## In Progress
 
-- Unit 05 specification: `context/specs/05-dashboard-shell.md`.
+None.
 
 ## Next Up
 
-1. Implement Unit 05 after the specification is reviewed and merged.
+1. Unit 06: GitHub App Registration and Installation Start.
 
 ## Open Questions
 
@@ -144,4 +156,4 @@ The onboarding Server Action writes to `profiles` (UPDATE) and `goals` (INSERT) 
 
 ## Session Notes
 
-Database migrations have been applied to the hosted Supabase project. The schema is live. Unit 04 was verified (`npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass) and merged into main. Unit 05 specification is being drafted.
+Database migrations have been applied to the hosted Supabase project. The schema is live. Unit 04 and Unit 05 are verified and merged into main.
