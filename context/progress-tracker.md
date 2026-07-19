@@ -5,11 +5,12 @@ Update this file after every meaningful implementation change.
 ## Current Phase
 
 - Planning complete.
-- **Unit 01: Project Foundation — complete.**
+- Unit 01: Project Foundation — complete.
+- **Unit 02: Supabase Auth — complete.**
 
 ## Current Goal
 
-- Begin Unit 02: Supabase Auth.
+- Begin Unit 03: Core Database Schema and RLS.
 
 ## Completed
 
@@ -46,6 +47,22 @@ Update this file after every meaningful implementation change.
 - All scripts present: `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `test:watch`.
 - README updated with local commands and context folder link.
 - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass.
+- **Unit 02 complete**: Supabase Auth with GitHub OAuth provider configured.
+- `@supabase/supabase-js` and `@supabase/ssr` installed.
+- Supabase client modules created: `browser.ts`, `server.ts`, `admin.ts`, `middleware.ts` in `src/lib/supabase/`.
+- Server and public env schemas extended with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`.
+- Auth callback route: `src/app/api/auth/callback/route.ts` (exchanges PKCE code for session, redirects to `/dashboard`).
+- Login page: `src/app/(auth)/login/page.tsx` with minimal centred layout.
+- `LoginCard` component with GitHub sign-in button, error state, and terms note.
+- `signInWithGitHub` Server Action — initiates GitHub OAuth via Supabase, redirects to callback.
+- `signOut` Server Action — calls `supabase.auth.signOut()` and redirects to `/login`.
+- Proxy (`src/proxy.ts`) — refreshes session cookie on every request, gates protected routes, redirects authenticated users from `/login`.
+- `(app)` layout fetches the authenticated user server-side and passes display name, email, avatar to `AppHeader`.
+- `AppHeader` updated to render user info, avatar/initials, and sign-out form.
+- `loading.tsx` and `error.tsx` boundaries added for `(app)` routes.
+- Marketing home page CTA now links to `/login`.
+- Auth tests: `get-user.test.ts` (3 tests), `sign-out.actions.test.ts` (1 test). Total tests: 10.
+- `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass (no warnings).
 
 ## In Progress
 
@@ -53,7 +70,7 @@ Update this file after every meaningful implementation change.
 
 ## Next Up
 
-1. Unit 02: Supabase Auth — GitHub OAuth, session management, protected routes, middleware.
+1. Unit 03: Core Database Schema and RLS — profiles table, migrations, RLS policies.
 
 ## Open Questions
 

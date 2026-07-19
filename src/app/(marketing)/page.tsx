@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Target, Zap } from "lucide-react";
@@ -69,24 +68,21 @@ export default function HomePage() {
             every time.
           </p>
 
-          <Button
-            size="lg"
-            disabled
-            className="rounded-lg cursor-not-allowed opacity-70"
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors"
             style={{
               backgroundColor: "var(--accent-primary)",
               color: "var(--text-inverse)",
             }}
-            aria-disabled="true"
-            title="Authentication is coming in a future release"
           >
             Start growing
-          </Button>
+          </Link>
           <p
             className="mt-3 text-xs"
             style={{ color: "var(--text-muted)" }}
           >
-            GitHub sign-in coming soon.
+            Free to try. Sign in with GitHub.
           </p>
         </PageContainer>
       </section>
