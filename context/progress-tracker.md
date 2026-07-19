@@ -11,11 +11,12 @@ Update this file after every meaningful implementation change.
 - Unit 04: Authenticated Onboarding — complete and merged into main.
 - Unit 05: Authenticated Dashboard Shell — complete and merged into main.
 - Unit 06: GitHub App Registration and Installation Start — **complete and merged into main.**
-- **Unit 07: GitHub App Setup Callback and Installation Verification — in progress.**
+- Unit 07: GitHub App Setup Callback and Installation Verification — **complete and merged into main.**
+- **Unit 08: Repository Sync and Selection — specification complete; awaiting implementation.**
 
 ## Current Goal
 
-- Build and verify the GitHub App setup callback.
+- Write and review the Unit 08 specification for repository synchronization and selection.
 
 ## Completed
 
@@ -158,7 +159,7 @@ None.
 
 ## Next Up
 
-1. Verify and merge Unit 07.
+1. Implement Unit 08: Repository Sync and Selection — specification at `context/specs/08-repository-sync-selection.md`.
 
 ## Open Questions
 
@@ -208,4 +209,4 @@ The setup callback at `/api/github/setup` receives an `installation_id` query pa
 
 ## Session Notes
 
-Database migrations have been applied to the hosted Supabase project. The schema is live. Units 01–07 are implemented and all automated checks pass. The Blumo Development GitHub App is created and installed. Unit 07 implementation is complete — awaiting verification and merge.
+Database migrations have been applied to the hosted Supabase project. The schema is live. Units 01–07 are verified, merged into main, and all automated checks pass. The Blumo Development GitHub App is created and installed. Unit 08 specification has been written at `context/specs/08-repository-sync-selection.md`.
