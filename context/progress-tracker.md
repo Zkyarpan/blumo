@@ -7,11 +7,12 @@ Update this file after every meaningful implementation change.
 - Planning complete.
 - Unit 01: Project Foundation — complete.
 - Unit 02: Supabase Auth — complete.
-- **Unit 03: Core Database Schema and RLS — in progress.**
+- Unit 03: Core Database Schema and RLS — complete.
+- **Unit 04: Onboarding — planning.**
 
 ## Current Goal
 
-- Implement Unit 03: Core Database Schema and RLS.
+- Write and review the Unit 04 onboarding specification.
 
 ## Completed
 
@@ -64,14 +65,30 @@ Update this file after every meaningful implementation change.
 - Marketing home page CTA now links to `/login`.
 - Auth tests: `get-user.test.ts` (3 tests), `sign-out.actions.test.ts` (1 test). Total tests: 10.
 - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass (no warnings).
+- **Unit 03 complete**: Core database schema and RLS applied to the hosted Supabase project.
+- All 10 SQL migrations created in `supabase/migrations/`.
+- `supabase/config.toml` created for local development.
+- `supabase/seed.sql` created for local RLS testing.
+- Tables created on the remote Supabase project: `profiles`, `goals`, `github_installations`, `repositories`, `daily_tasks`, `commits`, `ai_usage_records`, `audit_logs`.
+- RLS enabled on all user-owned tables; user-facing policies follow `id = auth.uid()` (profiles) and `user_id = auth.uid()` (all others).
+- `set_updated_at()` trigger function applied to `profiles`, `goals`, `github_installations`, `repositories`, `daily_tasks`.
+- `handle_new_user()` trigger: fires on `auth.users` INSERT, creates `profiles` row from GitHub OAuth metadata using `security definer`.
+- Partial unique index: one active goal per user (`goals_one_active_per_user_idx`).
+- Partial unique index: one selected active repository per user (`repositories_one_selected_per_user_idx`).
+- Full unique constraint: one commit per task (`commits.task_id`).
+- Migrations successfully pushed to the hosted Supabase project (`supabase db push`).
+- Remote tables verified in Supabase dashboard.
+- Unit 03 merged into main.
+- Unit 04 specification written: `context/specs/04-onboarding.md`.
 
 ## In Progress
 
-- Unit 03: Core Database Schema and RLS.
+- Unit 04: Onboarding — specification review.
 
 ## Next Up
 
-1. Unit 03: Core Database Schema and RLS — profiles table, migrations, RLS policies.
+1. Unit 04: Implement onboarding after the specification is reviewed and approved.
+2. Unit 05: Dashboard Shell — responsive navigation, goal summary, GitHub connection state.
 
 ## Open Questions
 
@@ -111,8 +128,10 @@ Pollinations is the first implementation, but feature code depends on an interna
 
 Email is sent from addresses below `mail.arpankarki.com.np`. The domain is verified. Supabase SMTP and product API keys still need to be created and configured.
 
+### Onboarding Write Strategy (Unit 04)
+
+The onboarding Server Action writes to `profiles` (UPDATE) and `goals` (INSERT) in sequence using the Supabase server client (anon key + RLS). `onboarding_completed_at` is set last, only after both the profile update and goal creation succeed. If either write fails the action returns an error and the client preserves entered values. The client never receives or sends a `user_id`; the server derives it from the authenticated session.
+
 ## Session Notes
 
-The project currently contains planning documents only. No application code, Supabase schema, GitHub App, or Vercel deployment has been created.
-
-Begin with Unit 01. Do not start authentication or database work until the foundation unit is complete and verified.
+Database migrations have been applied to the hosted Supabase project. The schema is live. Unit 04 planning is underway.
