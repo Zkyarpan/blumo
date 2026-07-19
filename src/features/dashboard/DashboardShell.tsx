@@ -42,7 +42,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
     profile,
     activeGoal,
     completedTaskCount,
-    hasActiveInstallation,
+    installationStatus,
     selectedRepository,
   } = data;
 
@@ -77,7 +77,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
         </div>
         <div className="md:col-span-1">
           <GitHubConnectionCard
-            hasActiveInstallation={hasActiveInstallation}
+            installationStatus={installationStatus}
             selectedRepository={selectedRepository}
           />
         </div>

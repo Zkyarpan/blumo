@@ -105,6 +105,8 @@ export async function processInstallationCallback(
         account_type: installation.account.type,
         status: "active",
         installed_at: new Date().toISOString(),
+        suspended_at: null,
+        uninstalled_at: null,
       },
       {
         onConflict: "installation_id",

@@ -22,7 +22,7 @@ export type DashboardData = {
     created_at: string;
   } | null;
   completedTaskCount: number;
-  hasActiveInstallation: boolean;
+  installationStatus: "active" | "suspended" | "uninstalled" | null;
   selectedRepository: {
     id: string;
     full_name: string;
@@ -86,18 +86,33 @@ export async function getDashboardData(
       completedTaskCount = count;
     }
 
-    // 4. Fetch the active GitHub installation (soft failure — disconnected).
+    // 4. Fetch the latest verified GitHub installation state. A query error is
+    // critical because presenting it as disconnected would fabricate status.
+    let installationStatus: DashboardData["installationStatus"] = null;
     let activeInstallationId: string | null = null;
     const { data: installationData, error: installationError } = await supabase
       .from("github_installations")
-      .select("id")
+      .select("id, status")
       .eq("user_id", userId)
-      .eq("status", "active")
+      .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    if (!installationError && installationData) {
-      activeInstallationId = installationData.id;
+    if (installationError) return null;
+
+    if (installationData) {
+      if (
+        installationData.status !== "active" &&
+        installationData.status !== "suspended" &&
+        installationData.status !== "uninstalled"
+      ) {
+        return null;
+      }
+
+      installationStatus = installationData.status;
+      if (installationStatus === "active") {
+        activeInstallationId = installationData.id;
+      }
     }
 
     // 5. Fetch the one selected active repository for that installation.
@@ -123,7 +138,7 @@ export async function getDashboardData(
       profile,
       activeGoal,
       completedTaskCount,
-      hasActiveInstallation: activeInstallationId !== null,
+      installationStatus,
       selectedRepository,
     };
   } catch {

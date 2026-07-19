@@ -190,7 +190,6 @@ export async function syncRepositories(
     )
     .eq("user_id", userId)
     .eq("installation_id", installation.id)
-    .neq("access_status", "removed")
     .order("full_name", { ascending: true });
 
   if (syncedRowsError) {

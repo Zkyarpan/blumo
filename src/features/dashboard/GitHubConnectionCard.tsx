@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Check, GitBranch } from "lucide-react";
+import { AlertTriangle, Check, GitBranch } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface GitHubConnectionCardProps {
-  hasActiveInstallation: boolean;
+  installationStatus: "active" | "suspended" | "uninstalled" | null;
   selectedRepository: {
     id: string;
     full_name: string;
@@ -13,9 +13,12 @@ interface GitHubConnectionCardProps {
 }
 
 export function GitHubConnectionCard({
-  hasActiveInstallation,
+  installationStatus,
   selectedRepository,
 }: GitHubConnectionCardProps) {
+  const isActive = installationStatus === "active";
+  const isSuspended = installationStatus === "suspended";
+
   return (
     <Card
       className="rounded-xl border"
@@ -35,7 +38,7 @@ export function GitHubConnectionCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {selectedRepository ? (
+        {isActive && selectedRepository ? (
           <div
             className="rounded-lg border p-4"
             style={{
@@ -64,7 +67,27 @@ export function GitHubConnectionCard({
               Default branch: {selectedRepository.default_branch}
             </p>
           </div>
-        ) : hasActiveInstallation ? (
+        ) : isSuspended ? (
+          <div
+            className="rounded-lg border p-5 text-center"
+            style={{
+              backgroundColor: "var(--state-warning-soft)",
+              borderColor: "var(--state-warning)",
+            }}
+          >
+            <AlertTriangle
+              className="mx-auto mb-2 size-6"
+              aria-hidden="true"
+              style={{ color: "var(--state-warning)" }}
+            />
+            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+              GitHub access suspended
+            </p>
+            <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+              Repository actions stay disabled until the installation is restored.
+            </p>
+          </div>
+        ) : isActive ? (
           <div
             className="rounded-lg border p-5 text-center"
             style={{
@@ -99,23 +122,37 @@ export function GitHubConnectionCard({
           </div>
         )}
 
-        <Link
-          href={
-            hasActiveInstallation ? "/github/repositories" : "/github/connect"
-          }
-          className="inline-flex w-full items-center justify-center rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: "var(--bg-subtle)",
-            color: "var(--text-secondary)",
-            borderColor: "var(--border-default)",
-          }}
-        >
-          {selectedRepository
-            ? "Manage repositories"
-            : hasActiveInstallation
-              ? "Select a repository →"
-              : "Connect GitHub →"}
-        </Link>
+        {isSuspended ? (
+          <a
+            href="https://github.com/settings/installations"
+            className="inline-flex w-full items-center justify-center rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: "var(--state-warning-soft)",
+              color: "var(--state-warning)",
+              borderColor: "var(--state-warning)",
+            }}
+          >
+            Manage GitHub access
+          </a>
+        ) : (
+          <Link
+            href={isActive ? "/github/repositories" : "/github/connect"}
+            className="inline-flex w-full items-center justify-center rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: "var(--bg-subtle)",
+              color: "var(--text-secondary)",
+              borderColor: "var(--border-default)",
+            }}
+          >
+            {isActive && selectedRepository
+              ? "Manage repositories"
+              : isActive
+                ? "Select a repository →"
+                : installationStatus === "uninstalled"
+                  ? "Reconnect GitHub →"
+                  : "Connect GitHub →"}
+          </Link>
+        )}
       </CardContent>
     </Card>
   );

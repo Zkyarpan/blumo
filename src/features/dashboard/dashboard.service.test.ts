@@ -29,7 +29,7 @@ const GOAL = {
   created_at: "2024-01-01T00:00:00Z",
 };
 
-const INSTALLATION = { id: "installation-1" };
+const INSTALLATION = { id: "installation-1", status: "active" };
 
 const REPOSITORY = {
   id: "repository-1",
@@ -98,6 +98,7 @@ function buildMockClient(opts: {
   const installationChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     maybeSingle: vi.fn().mockResolvedValue(installation),
   };
@@ -139,7 +140,7 @@ describe("getDashboardData", () => {
     expect(result?.profile.id).toBe(USER_ID);
     expect(result?.activeGoal?.title).toBe("Get a junior React job");
     expect(result?.completedTaskCount).toBe(3);
-    expect(result?.hasActiveInstallation).toBe(true);
+    expect(result?.installationStatus).toBe("active");
     expect(result?.selectedRepository).toEqual(REPOSITORY);
   });
 
@@ -214,7 +215,7 @@ describe("getDashboardData", () => {
     const { getDashboardData } = await import("./dashboard.service");
     const result = await getDashboardData(USER_ID);
 
-    expect(result?.hasActiveInstallation).toBe(true);
+    expect(result?.installationStatus).toBe("active");
     expect(result?.selectedRepository).toBeNull();
   });
 
@@ -226,7 +227,55 @@ describe("getDashboardData", () => {
     const { getDashboardData } = await import("./dashboard.service");
     const result = await getDashboardData(USER_ID);
 
-    expect(result?.hasActiveInstallation).toBe(false);
+    expect(result?.installationStatus).toBeNull();
     expect(result?.selectedRepository).toBeNull();
+  });
+
+  it("9. returns suspended status without presenting a selected repository", async () => {
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(
+      buildMockClient({
+        installation: {
+          data: { id: "installation-1", status: "suspended" },
+          error: null,
+        },
+      }) as never
+    );
+
+    const { getDashboardData } = await import("./dashboard.service");
+    const result = await getDashboardData(USER_ID);
+
+    expect(result?.installationStatus).toBe("suspended");
+    expect(result?.selectedRepository).toBeNull();
+  });
+
+  it("10. returns uninstalled status as disconnected without a repository", async () => {
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(
+      buildMockClient({
+        installation: {
+          data: { id: "installation-1", status: "uninstalled" },
+          error: null,
+        },
+      }) as never
+    );
+
+    const { getDashboardData } = await import("./dashboard.service");
+    const result = await getDashboardData(USER_ID);
+
+    expect(result?.installationStatus).toBe("uninstalled");
+    expect(result?.selectedRepository).toBeNull();
+  });
+
+  it("11. returns null rather than fabricating connection state on installation query failure", async () => {
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(
+      buildMockClient({
+        installation: {
+          data: null,
+          error: { message: "installation query failed" },
+        },
+      }) as never
+    );
+
+    const { getDashboardData } = await import("./dashboard.service");
+    await expect(getDashboardData(USER_ID)).resolves.toBeNull();
   });
 });

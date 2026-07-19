@@ -13,13 +13,13 @@ Update this file after every meaningful implementation change.
 - Unit 06: GitHub App Registration and Installation Start — **complete and merged into main.**
 - Unit 07: GitHub App Setup Callback and Installation Verification — **complete and merged into main.**
 - **Unit 08: Repository Sync and Selection — complete, manually verified, and merged into main.**
-- **Current phase: Unit 09 planning.**
-- **Unit 09 specification is complete and awaiting review and merge; implementation has not started.**
+- **Current phase: Unit 09 implementation.**
+- **Unit 09 specification is complete; implementation is in progress.**
 
 ## Current Goal
 
-- Review and merge the GitHub App webhook lifecycle specification, then implement
-  Unit 09 only after that gate passes.
+- Configure the real webhook secret and GitHub App endpoint, manually verify live
+  lifecycle deliveries, then review and merge Unit 09 without beginning Unit 10.
 
 ## Completed
 
@@ -169,17 +169,45 @@ Update this file after every meaningful implementation change.
   defines the signed raw-body webhook route, installation and repository lifecycle
   transitions, delivery idempotency and concurrency migration, ownership boundary,
   sanitized auditing, UI impact, GitHub App setup, tests, and completion gate.
-  The specification is awaiting review and merge; no Unit 09 application code or
-  migration has been implemented.
+  The specification was reviewed and merged into main before implementation.
+- **Unit 09 implementation and automated verification complete, pending the live
+  completion gate**:
+  - `POST /api/github/webhook` validates content type, required GitHub headers,
+    the 1 MiB raw-body limit, HMAC-SHA-256 in constant time, UTF-8 JSON, and narrow
+    Zod payload schemas before database access.
+  - Service-role-only claim/apply/fail RPC boundaries implement delivery
+    idempotency, concurrent/stale claim protection, stored installation/account
+    matching, transactional lifecycle updates, history preservation, selection
+    clearing, and one sanitized audit event per delivery.
+  - Installation and repository UI states now reflect active, suspended,
+    uninstalled, removed, and unavailable database state without fabricating a
+    connection.
+  - Unit 09 schema/security/setup documentation is synchronized.
+  - Automated verification passes: lint, typecheck, 149 tests, and production
+    build. The build used a temporary process-only webhook secret because the real
+    value is not yet present in `.env.local`.
+  - `20240001000012_github_webhook_lifecycle.sql` was applied successfully to the
+    linked hosted Supabase project; a follow-up dry-run reports the remote database
+    is up to date.
+  - Live GitHub webhook flows have not been manually verified because the real
+    webhook secret is not configured, so Unit 09 is not complete.
 
 ## In Progress
 
-- **Unit 09 planning**: specification review and merge. Unit 09 implementation has
-  not started.
+- **Unit 09 implementation**: signed webhook receipt, lifecycle synchronization,
+  idempotency, auditing, and UI states are implemented and pass automated
+  verification, and the migration is live. Secret/App configuration,
+  valid/invalid delivery, suspension/unsuspension, repository add/remove,
+  uninstall, and secret-exposure checks remain before the unit can be marked
+  complete.
 
 ## Next Up
 
-1. Implement Unit 09 after the specification is reviewed and merged.
+1. Add the real `GITHUB_WEBHOOK_SECRET` locally and in the deployment environment.
+2. Configure the same secret and active webhook URL in the GitHub App.
+3. Manually verify every Unit 09
+   lifecycle and secret-exposure check.
+4. Review and merge Unit 09 only after those checks pass.
 
 ## Open Questions
 
@@ -229,4 +257,4 @@ The setup callback at `/api/github/setup` receives an `installation_id` query pa
 
 ## Session Notes
 
-Database migrations have been applied to the hosted Supabase project. The schema is live. Unit 07 is complete and merged. Unit 08 is complete, manually verified, and merged into main; the verified GitHub installation and selected repository are stored in Supabase. The current phase is Unit 09 planning. The GitHub App webhook lifecycle specification is complete and awaiting review and merge. Unit 09 implementation has not started, and Unit 10 has not begun.
+Database migrations through Unit 09 have been applied to the hosted Supabase project, and the remote database is up to date. Unit 07 is complete and merged. Unit 08 is complete, manually verified, and merged into main; the verified GitHub installation and selected repository are stored in Supabase. Unit 09 implementation and automated verification are complete, but the real webhook secret is not present in `.env.local` and live GitHub deliveries have not been manually verified. Unit 09 therefore remains in progress. Unit 10 has not begun.

@@ -98,6 +98,14 @@ describe("processInstallationCallback", () => {
     const result = await processInstallationCallback(12345, "user-uuid", 9876543);
 
     expect(result).toEqual({ ok: true, installationRowId: "uuid-row-1" });
+    expect(mocks.mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "active",
+        suspended_at: null,
+        uninstalled_at: null,
+      }),
+      expect.any(Object)
+    );
   });
 
   it("returns INVALID_INSTALLATION when GitHub API returns null (404)", async () => {
