@@ -8,11 +8,11 @@ Update this file after every meaningful implementation change.
 - Unit 01: Project Foundation — complete.
 - Unit 02: Supabase Auth — complete.
 - Unit 03: Core Database Schema and RLS — complete.
-- **Unit 04: Onboarding — planning.**
+- **Unit 04: Onboarding — complete.**
 
 ## Current Goal
 
-- Write and review the Unit 04 onboarding specification.
+- Begin Unit 05: Dashboard Shell.
 
 ## Completed
 
@@ -80,15 +80,24 @@ Update this file after every meaningful implementation change.
 - Remote tables verified in Supabase dashboard.
 - Unit 03 merged into main.
 - Unit 04 specification written: `context/specs/04-onboarding.md`.
+- **Unit 04 complete**: First-time onboarding form implemented end-to-end.
+- `src/lib/supabase/middleware.ts` updated to also return the `supabase` client instance.
+- `src/proxy.ts` extended with onboarding gate: unonboarded users redirected to `/onboarding`; already-onboarded users redirected away from `/onboarding` to `/dashboard`.
+- `src/app/(app)/onboarding/page.tsx` — Server Component, defensive `onboarding_completed_at` check before rendering the form.
+- `src/app/(app)/onboarding/loading.tsx` — skeleton placeholder.
+- `src/features/onboarding/OnboardingForm.tsx` — `"use client"` React Hook Form component with Zod resolver, all six fields, progress bar, error banner, and accessible field groups.
+- `src/features/onboarding/onboarding.schema.test.ts` — 10 Zod schema tests.
+- `src/features/onboarding/onboarding.service.test.ts` — 6 service/action tests (including unauthenticated case).
+- Total test count: 26 (up from 10). All pass.
+- `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass (no warnings).
 
 ## In Progress
 
-- Unit 04: Onboarding — specification review.
+None.
 
 ## Next Up
 
-1. Unit 04: Implement onboarding after the specification is reviewed and approved.
-2. Unit 05: Dashboard Shell — responsive navigation, goal summary, GitHub connection state.
+1. Unit 05: Dashboard Shell — responsive navigation, goal summary, GitHub connection state.
 
 ## Open Questions
 

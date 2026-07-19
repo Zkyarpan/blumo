@@ -23,7 +23,7 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Always refresh the session cookie on every matched request
-  const { supabaseResponse, user } = await updateSession(request);
+  const { supabaseResponse, user, supabase } = await updateSession(request);
 
   // Gate protected routes
   if (isProtectedPath(pathname) && !user) {
@@ -35,6 +35,32 @@ export async function proxy(request: NextRequest) {
   // Redirect authenticated users away from /login
   if (pathname === "/login" && user) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // Onboarding gate — only for authenticated users on app paths.
+  // Skip for /api/auth/callback and /login (already handled above).
+  if (user) {
+    const isOnboardingPath =
+      pathname === "/onboarding" || pathname.startsWith("/onboarding/");
+    const isProtectedAppPath = isProtectedPath(pathname) && !isOnboardingPath;
+
+    // Fetch minimal profile — select only the sentinel column.
+    // maybeSingle() so a missing row (trigger delay) is treated as not onboarded.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarding_completed_at")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const isOnboarded = !!profile?.onboarding_completed_at;
+
+    if (isOnboardingPath && isOnboarded) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    if (isProtectedAppPath && !isOnboarded) {
+      return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
   }
 
   return supabaseResponse;
