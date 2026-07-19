@@ -10,11 +10,13 @@ Update this file after every meaningful implementation change.
 - Unit 03: Core Database Schema and RLS — complete.
 - Unit 04: Authenticated Onboarding — complete and merged into main.
 - Unit 05: Authenticated Dashboard Shell — complete and merged into main.
-- **Unit 06: GitHub App Registration and Installation Start — planning.**
+- Unit 06: GitHub App Registration and Installation Start — **complete and merged into main.**
+- **Unit 07: GitHub App Setup Callback and Installation Verification — planning.**
 
 ## Current Goal
 
-- Write the Unit 06 specification: GitHub App registration and installation start.
+- Write the Unit 07 specification: GitHub App setup callback, installation
+  verification, and installation storage.
 
 ## Completed
 
@@ -69,6 +71,9 @@ Update this file after every meaningful implementation change.
 - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass (no warnings).
 - **Unit 03 complete**: Core database schema and RLS applied to the hosted Supabase project.
 - All 10 SQL migrations created in `supabase/migrations/`.
+- Migration 11 added: `profiles: owner insert` RLS policy so the onboarding
+  service can create the profile row as a fallback if the `handle_new_user()`
+  trigger is delayed or silently fails.
 - `supabase/config.toml` created for local development.
 - `supabase/seed.sql` created for local RLS testing.
 - Tables created on the remote Supabase project: `profiles`, `goals`, `github_installations`, `repositories`, `daily_tasks`, `commits`, `ai_usage_records`, `audit_logs`.
@@ -87,31 +92,63 @@ Update this file after every meaningful implementation change.
 - `src/proxy.ts` extended with onboarding gate: unonboarded users redirected to `/onboarding`; already-onboarded users redirected away from `/onboarding` to `/dashboard`.
 - `src/app/(app)/onboarding/page.tsx` — Server Component, defensive `onboarding_completed_at` check before rendering the form.
 - `src/app/(app)/onboarding/loading.tsx` — skeleton placeholder.
-- `src/features/onboarding/OnboardingForm.tsx` — `"use client"` React Hook Form component with Zod resolver, all six fields, progress bar, error banner, and accessible field groups.
+- `src/features/onboarding/OnboardingForm.tsx` — `"use client"` React Hook Form component with Zod resolver, all six fields, progress bar, error banner, and accessible field groups. Select display labels fixed via `SelectValue` render-function pattern. Client-side `router.push('/dashboard')` on success.
+- `src/features/onboarding/onboarding.service.ts` — Step 1 uses `upsert` (not `update`) so GitHub metadata and preferences are always written even if the profile trigger was delayed. Pulls GitHub metadata from `supabase.auth.getUser()` during onboarding.
 - `src/features/onboarding/onboarding.schema.test.ts` — 10 Zod schema tests.
 - `src/features/onboarding/onboarding.service.test.ts` — 6 service/action tests (including unauthenticated case).
-- Total test count: 26 (up from 10). All pass.
+- Total test count: 32 (up from 26). All pass.
 - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass (no warnings).
 - **Unit 05 complete**: Authenticated dashboard shell implemented.
 - `src/features/dashboard/` feature module created: `dashboard.service.ts`, `DashboardShell.tsx`, `GoalSummaryCard.tsx`, `MissionCard.tsx`, `GitHubConnectionCard.tsx`, `ProgressSummaryCard.tsx`, `RecentActivitySection.tsx`.
 - `src/components/layout/AppSidebar.tsx` — fixed left sidebar (`lg` and wider), `usePathname()` active state, `aria-current="page"`.
 - `src/components/layout/MobileNav.tsx` — Sheet-based mobile navigation, hamburger trigger, closes on link click.
-- `src/components/layout/AppHeader.tsx` — nav links removed; `MobileNav` slot added; wordmark, user info, sign-out preserved.
-- `src/app/(app)/layout.tsx` — `AppSidebar` added, `lg:pl-56` on `<main>`.
+- `src/components/layout/AppHeader.tsx` — nav links removed; `MobileNav` slot added; wordmark, user info, sign-out preserved. Changed from `sticky` to `fixed top-0` so header remains visible on scroll.
+- `src/app/(app)/layout.tsx` — `AppSidebar` added; `pt-14 lg:pl-56` on `<main>` to compensate for fixed header.
 - `src/app/(app)/dashboard/page.tsx` — replaced placeholder with real data fetch, redirect logic, `DashboardShell` render.
 - `src/app/(app)/dashboard/loading.tsx` — skeleton matching dashboard layout shape.
 - `src/app/(app)/tasks/page.tsx`, `history/page.tsx`, `settings/page.tsx` — placeholder pages.
 - `src/features/dashboard/dashboard.service.test.ts` — 6 new tests.
 - Total test count: 32 (up from 26). All pass.
 - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass (no warnings).
+- **Unit 06 complete and merged into main**: GitHub App registration and installation start page implemented.
+- The **Blumo Development** GitHub App is created and installed for testing.
+  App ID: 4335897. Slug: `blumo-development`. Installed on the developer's
+  personal account.
+- `src/lib/env/server.ts` extended with 6 GitHub App env vars: `GITHUB_APP_ID`,
+  `GITHUB_APP_SLUG`, `GITHUB_APP_PRIVATE_KEY` (required); `GITHUB_WEBHOOK_SECRET`
+  (optional until Unit 09); `GITHUB_APP_CLIENT_ID`, `GITHUB_APP_CLIENT_SECRET`
+  (optional until Unit 07).
+- `src/lib/github/github-app.config.ts` — server-only; normalises `\\n` to real
+  newlines in the private key.
+- `src/lib/github/installation-url.ts` — pure server-only URL builder for the
+  GitHub App installation flow.
+- `src/app/(app)/github/connect/page.tsx` — Server Component; auth + onboarding
+  redirect guards; builds installation URL server-side; passes it to
+  `ConnectGitHubPage` (no secrets in props).
+- `src/app/(app)/github/connect/loading.tsx` — skeleton.
+- `src/features/github/ConnectGitHubPage.tsx` — Server Component presenting
+  permission explanation card and privacy note.
+- `src/features/github/ConnectGitHubButton.tsx` — `"use client"`; uses
+  `window.location.href` to navigate to GitHub's installation page.
+- `/github` added to `PROTECTED_PATHS` in `src/proxy.ts`.
+- `src/features/dashboard/GitHubConnectionCard.tsx` "Connect GitHub →" link
+  updated to `/github/connect`.
+- `src/app/(app)/settings/page.tsx` copy updated to reference the dashboard for
+  GitHub connection.
+- `src/lib/github/installation-url.test.ts` — 4 tests.
+- `src/lib/github/github-app.config.test.ts` — 2 tests.
+- `@color-popover` and `@color-popover-foreground` mapped in `globals.css`
+  `@theme inline` block — fixes transparent Select dropdown backgrounds.
+- Total test count: 38 (up from 32). All pass.
+- `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass.
 
 ## In Progress
 
-- Unit 06 specification: `context/specs/06-github-app-installation-start.md`.
+- Unit 07 specification: `context/specs/07-github-installation-callback.md`.
 
 ## Next Up
 
-1. Implement Unit 06 after the specification is reviewed and merged.
+1. Implement Unit 07 after the specification is reviewed and merged.
 
 ## Open Questions
 
@@ -153,8 +190,12 @@ Email is sent from addresses below `mail.arpankarki.com.np`. The domain is verif
 
 ### Onboarding Write Strategy (Unit 04)
 
-The onboarding Server Action writes to `profiles` (UPDATE) and `goals` (INSERT) in sequence using the Supabase server client (anon key + RLS). `onboarding_completed_at` is set last, only after both the profile update and goal creation succeed. If either write fails the action returns an error and the client preserves entered values. The client never receives or sends a `user_id`; the server derives it from the authenticated session.
+The onboarding Server Action writes to `profiles` (UPSERT) and `goals` (INSERT) in sequence using the Supabase server client (anon key + RLS). The UPSERT includes full GitHub OAuth metadata from the live session so the profiles row is always fully populated even when the `handle_new_user()` trigger is delayed. `onboarding_completed_at` is set last, only after both writes succeed. The client never receives or sends a `user_id`; the server derives it from the authenticated session.
+
+### GitHub Installation Verification Strategy (Unit 07)
+
+The setup callback at `/api/github/setup` receives an `installation_id` query parameter from GitHub but never trusts it directly. The server authenticates as the GitHub App using a signed JWT, calls the GitHub API to retrieve the installation, and verifies that the installation's GitHub account matches the signed-in user's `github_user_id` from the `profiles` table. If the account ID does not match, the installation is rejected. The verified installation metadata is stored in `github_installations` using an upsert keyed on `installation_id`. No installation access token is stored.
 
 ## Session Notes
 
-Database migrations have been applied to the hosted Supabase project. The schema is live. Units 01–05 are verified and merged into main. Unit 06 specification is being drafted. The `docs/github-app-setup.md` setup guide has been created alongside the spec.
+Database migrations have been applied to the hosted Supabase project. The schema is live. Units 01–06 are verified and merged into main. The Blumo Development GitHub App is created and installed. Unit 07 specification is being written.
