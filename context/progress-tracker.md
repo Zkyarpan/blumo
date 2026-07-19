@@ -14,14 +14,14 @@ Update this file after every meaningful implementation change.
 - Unit 07: GitHub App Setup Callback and Installation Verification — **complete and merged into main.**
 - **Unit 08: Repository Sync and Selection — complete, manually verified, and merged into main.**
 - **Unit 09 implementation complete and verified.**
-- **Unit 10 implementation complete and automated verification passed; the
-  production-like manual completion gate is pending protected provider
-  configuration.**
+- **Unit 10: AI Mission Generation is complete, manually verified with the real
+  AI provider, and merged into main.**
+- **Current phase: Unit 11 planning.**
 
 ## Current Goal
 
-- Configure the protected Pollinations key and complete the production-like Unit
-  10 manual verification gate. Do not begin Unit 11.
+- Write the mission review and approval specification. Do not implement Unit 11
+  until its specification is reviewed and merged.
 
 ## Completed
 
@@ -243,32 +243,15 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- **Unit 10 real-provider correction in progress**: live testing proved the
-  Pollinations key/provider succeeds, but the Server Action rejected React/Next
-  `$ACTION_*` transport fields as unexpected input and returned
-  `invalid_request` before profile, repository, prompt, provider, or persistence
-  work. The action boundary, safe validation diagnostics, pre-provider validation,
-  and provider-backed allowance reset behavior are corrected and pass all
-  automated checks. A later dashboard attempt reached Pollinations but was rejected because the
-  provider's `privacy,secrets,shield` filter matched Blumo's negative guardrail
-  wording. That request option is corrected, migration
-  `20240001000016_ai_mission_failed_usage_reset.sql` is applied, and the rejected
-  usage row was removed. The preserved task is now retryable with zero consumed
-  provider-backed attempts. Three later provider responses were correctly
-  rejected because they serialized `acceptance_checklist` as a string; those
-  usage rows were removed after the `mission-v2` schema correction. The task is
-  retryable at monotonic claim version 4 with zero provider-backed failures. Unit
-  10 remains in progress until the user runs the refreshed retry and confirms the
-  real mission is stored and displayed. Unit 11 has not begun.
+- **Unit 11 planning**: the mission review and approval specification is drafted
+  in `context/specs/11-mission-review-approval.md` and awaits review and merge.
+  No Unit 11 application code has begun.
 
 ## Next Up
 
-1. Run the Unit 10 live generation and refresh check with the configured protected
-   Pollinations key; confirm the validated row in `daily_tasks`.
-2. Run the remaining Unit 10 persistence, duplicate-tab, outage, unsafe
-   output, access-change, usage/audit, secret-exposure, and responsive manual
-   checks from the active specification.
-3. Mark Unit 10 fully complete only after those checks pass. Do not begin Unit 11.
+1. Review and merge the Unit 11 mission review and approval specification.
+2. Implement Unit 11 only after its specification is reviewed and merged.
+3. Do not begin Unit 12.
 
 ## Open Questions
 
@@ -317,20 +300,10 @@ The setup callback at `/api/github/setup` receives an `installation_id` query pa
 
 ## Session Notes
 
-Database migrations through the Unit 10 real-provider failed-usage reset are
-applied to the hosted Supabase project, database lint reports no errors, and the
-remote database is up to date. Unit 10 implementation and the complete automated
-gate pass (lint, typecheck, 234 tests, and build). The protected Pollinations key
-is configured, but live provider and responsive signed-in manual verification
-remain pending because no browser instance was available to the agent. Subsequent
-user testing and live diagnosis reproduced an HTTP 400 only with
-Pollinations `privacy,secrets,shield`; the exact request returns HTTP 200 with the
-documented `sexual,violence` categories. The failed usage was deleted after the
-reset trigger correction, leaving the preserved task retryable with claim version
-1 and zero provider-backed failures. Subsequent real responses exposed a
-prose-contract mismatch that returned `acceptance_checklist` as a string;
-`mission-v2` now uses an explicit JSON-Schema-shaped contract. Sanitized live
-probes confirm an array response and complete validation success. The three failed
-usage rows were removed, leaving the task retryable at monotonic claim version 4
-with zero provider-backed failures. A real persisted mission and refreshed
-dashboard display are still pending. Unit 11 has not begun.
+Unit 10: AI Mission Generation is complete. It was manually verified with the
+real AI provider, including successful generation, persistence, and refreshed
+dashboard display, and was merged into main. Database migrations through Unit 10
+are applied to the hosted Supabase project. The current phase is Unit 11 planning;
+the mission review and approval specification is drafted and awaits review and
+merge. Unit 11 implementation begins only after that specification is reviewed
+and merged. Unit 12 has not begun.

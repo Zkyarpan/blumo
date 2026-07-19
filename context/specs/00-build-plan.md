@@ -198,11 +198,25 @@ Result:
 - A user generates, saves, and views one validated daily mission without any
   repository content read or GitHub write.
 
-### Unit 11: Reserved
+### Unit 11: Mission Review and Approval
 
-The prior Unit 11 mission-generation scope moved into the reviewed Unit 10
-specification. Unit 11 has no authorized implementation scope yet and must not be
-started until a separate specification is reviewed and merged.
+Build:
+
+- Read-only review page for the generated mission and verified repository.
+- Explicit approve and reject actions with atomic server-side transitions.
+- Optional sanitized rejection reason and required safe regeneration feedback.
+- Immutable mission versions and bounded, duplicate-safe regeneration.
+- Approval/rejection/regeneration audit events.
+- Approved placeholder handoff to the later task workspace.
+
+Dependencies:
+
+- Unit 10 and a reviewed, merged Unit 11 specification.
+
+Result:
+
+- A user reviews AI-generated mission content, approves or rejects it, and may
+  request a bounded replacement without any GitHub write.
 
 ### Unit 12: Task Workspace
 
