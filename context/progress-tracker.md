@@ -9,11 +9,12 @@ Update this file after every meaningful implementation change.
 - Unit 02: Supabase Auth — complete.
 - Unit 03: Core Database Schema and RLS — complete.
 - Unit 04: Authenticated Onboarding — complete and merged into main.
-- **Unit 05: Dashboard Shell — complete.**
+- Unit 05: Authenticated Dashboard Shell — complete and merged into main.
+- **Unit 06: GitHub App Registration and Installation Start — planning.**
 
 ## Current Goal
 
-- Begin Unit 06: GitHub App Registration and Installation Start.
+- Write the Unit 06 specification: GitHub App registration and installation start.
 
 ## Completed
 
@@ -106,11 +107,11 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-None.
+- Unit 06 specification: `context/specs/06-github-app-installation-start.md`.
 
 ## Next Up
 
-1. Unit 06: GitHub App Registration and Installation Start.
+1. Implement Unit 06 after the specification is reviewed and merged.
 
 ## Open Questions
 
@@ -156,4 +157,4 @@ The onboarding Server Action writes to `profiles` (UPDATE) and `goals` (INSERT) 
 
 ## Session Notes
 
-Database migrations have been applied to the hosted Supabase project. The schema is live. Unit 04 and Unit 05 are verified and merged into main.
+Database migrations have been applied to the hosted Supabase project. The schema is live. Units 01–05 are verified and merged into main. Unit 06 specification is being drafted. The `docs/github-app-setup.md` setup guide has been created alongside the spec.
