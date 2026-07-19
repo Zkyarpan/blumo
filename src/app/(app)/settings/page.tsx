@@ -17,7 +17,8 @@ export default function SettingsPage() {
         Settings
       </h1>
       <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
-        Account settings and GitHub connection are coming soon.
+        Account settings are coming soon. To connect your GitHub repository,
+        use the <strong>Connect GitHub</strong> button on your dashboard.
       </p>
       <Link
         href="/dashboard"
