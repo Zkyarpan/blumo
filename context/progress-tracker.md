@@ -6,11 +6,12 @@ Update this file after every meaningful implementation change.
 
 - Planning complete.
 - Unit 01: Project Foundation — complete.
-- **Unit 02: Supabase Auth — complete.**
+- Unit 02: Supabase Auth — complete.
+- **Unit 03: Core Database Schema and RLS — in progress.**
 
 ## Current Goal
 
-- Begin Unit 03: Core Database Schema and RLS.
+- Implement Unit 03: Core Database Schema and RLS.
 
 ## Completed
 
@@ -66,7 +67,7 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- None.
+- Unit 03: Core Database Schema and RLS.
 
 ## Next Up
 
