@@ -12,11 +12,11 @@ Update this file after every meaningful implementation change.
 - Unit 05: Authenticated Dashboard Shell — complete and merged into main.
 - Unit 06: GitHub App Registration and Installation Start — **complete and merged into main.**
 - Unit 07: GitHub App Setup Callback and Installation Verification — **complete and merged into main.**
-- **Unit 08: Repository Sync and Selection — specification complete; awaiting implementation.**
+- **Unit 08: Repository Sync and Selection — implementation complete and verified; awaiting merge.**
 
 ## Current Goal
 
-- Write and review the Unit 08 specification for repository synchronization and selection.
+- Merge the verified Unit 08 repository synchronization and selection implementation.
 
 ## Completed
 
@@ -152,6 +152,15 @@ Update this file after every meaningful implementation change.
   `@theme inline` block — fixes transparent Select dropdown backgrounds.
 - Total test count: 38 (up from 32). All pass.
 - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass.
+- **Unit 08 complete and verified (not yet merged)**: Repository synchronization and one-active-repository selection implemented.
+  - `src/lib/github/installation-token.ts` creates short-lived installation tokens only in server-only code and never persists, logs, or exposes them to the browser.
+  - `src/lib/github/repository-list.ts` uses installation tokens transiently and paginates all repositories available to the verified installation.
+  - `src/features/github/repository-sync.service.ts` verifies the user's active installation, safely upserts repository metadata without changing `is_selected`, marks missing repositories as removed, preserves historical rows, and writes sanitized audit events.
+  - `src/features/github/repository-selection.service.ts` rejects foreign, removed, unavailable, or inactive-installation repositories; clears the previous selection; verifies the active-row update; and rolls back safely on failure.
+  - `/github/repositories` provides authenticated loading, empty, GitHub-unavailable, generic-error, selected, removed/unavailable, and selection-success states. Missing and suspended installations follow the documented connect/reconnect paths.
+  - The dashboard GitHub card shows the active repository and default branch, a **Manage repositories** link, the connected-without-selection state, or the existing not-connected state.
+  - 25 Unit 08 and dashboard regression tests added. Total test count: 79.
+  - Final verification passes: `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build`.
 
 ## In Progress
 
@@ -159,7 +168,7 @@ None.
 
 ## Next Up
 
-1. Implement Unit 08: Repository Sync and Selection — specification at `context/specs/08-repository-sync-selection.md`.
+1. Merge Unit 08. Do not begin Unit 09 before Unit 08 is merged.
 
 ## Open Questions
 
@@ -209,4 +218,4 @@ The setup callback at `/api/github/setup` receives an `installation_id` query pa
 
 ## Session Notes
 
-Database migrations have been applied to the hosted Supabase project. The schema is live. Units 01–07 are verified, merged into main, and all automated checks pass. The Blumo Development GitHub App is created and installed. Unit 08 specification has been written at `context/specs/08-repository-sync-selection.md`.
+Database migrations have been applied to the hosted Supabase project. The schema is live. Unit 07 is complete and merged. The Blumo Development GitHub App is created and installed. The Unit 08 specification at `context/specs/08-repository-sync-selection.md` is complete and merged. Unit 08 implementation is complete and verified with 79 passing tests plus successful lint, typecheck, and production build; the implementation is awaiting merge. Unit 09 has not been started.

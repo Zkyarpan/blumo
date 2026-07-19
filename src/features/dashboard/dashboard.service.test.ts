@@ -29,6 +29,14 @@ const GOAL = {
   created_at: "2024-01-01T00:00:00Z",
 };
 
+const INSTALLATION = { id: "installation-1" };
+
+const REPOSITORY = {
+  id: "repository-1",
+  full_name: "arpankarki/blumo-notes",
+  default_branch: "develop",
+};
+
 /**
  * Builds a fully-chainable mock Supabase client for the three queries
  * getDashboardData issues: profiles (maybeSingle), goals (maybeSingle),
@@ -38,11 +46,21 @@ function buildMockClient(opts: {
   profile?: { data: typeof PROFILE | null; error: null | { message: string } };
   goal?: { data: typeof GOAL | null; error: null | { message: string } };
   taskCount?: { count: number | null; error: null | { message: string } };
+  installation?: {
+    data: typeof INSTALLATION | null;
+    error: null | { message: string };
+  };
+  repository?: {
+    data: typeof REPOSITORY | null;
+    error: null | { message: string };
+  };
 }) {
   const {
     profile = { data: PROFILE, error: null },
     goal = { data: GOAL, error: null },
     taskCount = { count: 3, error: null },
+    installation = { data: INSTALLATION, error: null },
+    repository = { data: REPOSITORY, error: null },
   } = opts;
 
   // Profile chain: .from("profiles").select().eq().maybeSingle()
@@ -77,10 +95,26 @@ function buildMockClient(opts: {
     return taskCountChain;
   });
 
+  const installationChain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue(installation),
+  };
+
+  const repositoryChain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue(repository),
+  };
+
   const fromFn = vi.fn().mockImplementation((table: string) => {
     if (table === "profiles") return profileChain;
     if (table === "goals") return goalChain;
     if (table === "daily_tasks") return taskCountChain;
+    if (table === "github_installations") return installationChain;
+    if (table === "repositories") return repositoryChain;
     return profileChain;
   });
 
@@ -105,6 +139,8 @@ describe("getDashboardData", () => {
     expect(result?.profile.id).toBe(USER_ID);
     expect(result?.activeGoal?.title).toBe("Get a junior React job");
     expect(result?.completedTaskCount).toBe(3);
+    expect(result?.hasActiveInstallation).toBe(true);
+    expect(result?.selectedRepository).toEqual(REPOSITORY);
   });
 
   it("2. returns DashboardData with activeGoal: null when no active goal exists", async () => {
@@ -168,5 +204,29 @@ describe("getDashboardData", () => {
     expect(result).not.toBeNull();
     expect(result?.activeGoal).toBeNull();
     expect(result?.completedTaskCount).toBe(0);
+  });
+
+  it("7. returns a connected installation without a selected repository", async () => {
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(
+      buildMockClient({ repository: { data: null, error: null } }) as never
+    );
+
+    const { getDashboardData } = await import("./dashboard.service");
+    const result = await getDashboardData(USER_ID);
+
+    expect(result?.hasActiveInstallation).toBe(true);
+    expect(result?.selectedRepository).toBeNull();
+  });
+
+  it("8. returns the disconnected state when no active installation exists", async () => {
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(
+      buildMockClient({ installation: { data: null, error: null } }) as never
+    );
+
+    const { getDashboardData } = await import("./dashboard.service");
+    const result = await getDashboardData(USER_ID);
+
+    expect(result?.hasActiveInstallation).toBe(false);
+    expect(result?.selectedRepository).toBeNull();
   });
 });
