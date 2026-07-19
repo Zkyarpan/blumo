@@ -1,6 +1,11 @@
 import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  getOwnedTodayMission,
+  type TodayMissionState,
+} from "@/features/missions/mission-generation.repository";
+import { getUserLocalDate } from "@/features/missions/mission-date";
 
 export type DashboardData = {
   profile: {
@@ -25,9 +30,11 @@ export type DashboardData = {
   installationStatus: "active" | "suspended" | "uninstalled" | null;
   selectedRepository: {
     id: string;
+    name: string;
     full_name: string;
     default_branch: string;
   } | null;
+  todayMission: TodayMissionState;
 };
 
 /**
@@ -58,6 +65,16 @@ export async function getDashboardData(
 
     if (profileError || !profile) {
       return null;
+    }
+
+    let todayMission: TodayMissionState = { kind: "invalid" };
+    const localDate = getUserLocalDate(new Date(), profile.timezone);
+    if (localDate) {
+      try {
+        todayMission = await getOwnedTodayMission(userId, localDate);
+      } catch {
+        todayMission = { kind: "invalid" };
+      }
     }
 
     // 2. Fetch active goal (soft failure — return null goal, not null data)
@@ -121,7 +138,7 @@ export async function getDashboardData(
     if (activeInstallationId) {
       const { data: repositoryData, error: repositoryError } = await supabase
         .from("repositories")
-        .select("id, full_name, default_branch")
+        .select("id, name, full_name, default_branch")
         .eq("user_id", userId)
         .eq("installation_id", activeInstallationId)
         .eq("is_selected", true)
@@ -140,6 +157,7 @@ export async function getDashboardData(
       completedTaskCount,
       installationStatus,
       selectedRepository,
+      todayMission,
     };
   } catch {
     return null;

@@ -13,13 +13,15 @@ Update this file after every meaningful implementation change.
 - Unit 06: GitHub App Registration and Installation Start — **complete and merged into main.**
 - Unit 07: GitHub App Setup Callback and Installation Verification — **complete and merged into main.**
 - **Unit 08: Repository Sync and Selection — complete, manually verified, and merged into main.**
-- **Current phase: Unit 09 implementation.**
-- **Unit 09 specification is complete; implementation is in progress.**
+- **Unit 09 implementation complete and verified.**
+- **Unit 10 implementation complete and automated verification passed; the
+  production-like manual completion gate is pending protected provider
+  configuration.**
 
 ## Current Goal
 
-- Configure the real webhook secret and GitHub App endpoint, manually verify live
-  lifecycle deliveries, then review and merge Unit 09 without beginning Unit 10.
+- Configure the protected Pollinations key and complete the production-like Unit
+  10 manual verification gate. Do not begin Unit 11.
 
 ## Completed
 
@@ -170,8 +172,7 @@ Update this file after every meaningful implementation change.
   transitions, delivery idempotency and concurrency migration, ownership boundary,
   sanitized auditing, UI impact, GitHub App setup, tests, and completion gate.
   The specification was reviewed and merged into main before implementation.
-- **Unit 09 implementation and automated verification complete, pending the live
-  completion gate**:
+- **Unit 09 complete and verified**:
   - `POST /api/github/webhook` validates content type, required GitHub headers,
     the 1 MiB raw-body limit, HMAC-SHA-256 in constant time, UTF-8 JSON, and narrow
     Zod payload schemas before database access.
@@ -184,37 +185,96 @@ Update this file after every meaningful implementation change.
     connection.
   - Unit 09 schema/security/setup documentation is synchronized.
   - Automated verification passes: lint, typecheck, 149 tests, and production
-    build. The build used a temporary process-only webhook secret because the real
-    value is not yet present in `.env.local`.
+    build.
   - `20240001000012_github_webhook_lifecycle.sql` was applied successfully to the
     linked hosted Supabase project; a follow-up dry-run reports the remote database
     is up to date.
-  - Live GitHub webhook flows have not been manually verified because the real
-    webhook secret is not configured, so Unit 09 is not complete.
+  - GitHub webhook configuration and live lifecycle verification passed.
+- **Unit 10 implementation and automated verification complete**:
+  - Provider-neutral server-only AI contracts and a Pollinations Chat
+    Completions adapter use structured JSON, safe mode, lazy protected
+    configuration, normalized errors, 15-second attempt deadlines, a 25-second
+    operation budget, and at most one transient retry.
+  - `mission-v2` prompts use only the active goal, experience level, selected
+    repository name/default branch/visibility, and up to five bounded completed
+    mission summaries. Repository contents and identifying/internal metadata are
+    excluded.
+  - Strict Zod and deterministic safety validation reject unknown fields,
+    mismatched time/difficulty/branch, duplicate checklist items, files/paths,
+    invented repository facts, destructive or shell actions, credential
+    requests, external boundaries, prompt injection, and approval bypasses.
+  - The authenticated no-ID Server Action and injected mission service compute
+    the stored-timezone local date, claim atomically, persist only validated
+    fields, record one idempotent usage row per provider call, and never overwrite
+    a valid/completed mission.
+  - Dashboard mission states now cover prerequisites, empty generation, disabled
+    loading skeleton, saved mission details, safe errors, bounded retry, exhausted
+    retry, and an existing active mission without Unit 11 workspace behavior.
+  - Migrations `20240001000013_ai_mission_generation.sql`, ordered corrective
+    `20240001000014_ai_mission_generation_jsonb_fix.sql`, and real-provider
+    allowance correction `20240001000015_ai_mission_attempt_reset.sql` are applied
+    to the linked hosted Supabase project. Database lint reports zero errors and
+    a dry run says the remote database is up to date.
+  - Broad authenticated `daily_tasks` insert/update policies are removed; one
+    user-local row and one active mission are database-enforced while completed,
+    failed, and archived history is preserved.
+  - Real-provider regression coverage confirms empty and framework-transport-only
+    Server Action forms, missing profile/goal/repository prerequisites, malformed
+    and real-provider-shaped AI responses, non-consuming application/configuration
+    failures, allowance reset behavior, and successful mission persistence.
+  - A second live-provider diagnosis found the exact mission prompt was rejected
+    with HTTP 400 only under Pollinations `privacy,secrets,shield`: those filters
+    matched the prompt's own negative security constraints. The documented
+    `sexual,violence` categories return HTTP 200 for the exact request, while
+    Blumo's deterministic validation continues to enforce secret, path,
+    destructive-action, injection, and approval-bypass rules.
+  - Real-provider output-shape diagnostics then identified
+    `acceptance_checklist` as a string because the original prose-only contract
+    described every output field with a string. `mission-v2` now supplies a
+    JSON-Schema-shaped contract with explicit field types, required keys, bounds,
+    constants, and `additionalProperties: false`. Two sanitized live probes
+    returned a checklist array and the complete strict validator accepted the
+    second response.
+  - Final automated verification passes: lint, typecheck, 234 tests across 37
+    files, and the production build. The first sandboxed build could not fetch
+    configured Google fonts; the approved network-enabled rerun passed.
+  - Unit 11, webhooks, commit creation, and pull requests were not implemented or
+    changed by Unit 10.
 
 ## In Progress
 
-- **Unit 09 implementation**: signed webhook receipt, lifecycle synchronization,
-  idempotency, auditing, and UI states are implemented and pass automated
-  verification, and the migration is live. Secret/App configuration,
-  valid/invalid delivery, suspension/unsuspension, repository add/remove,
-  uninstall, and secret-exposure checks remain before the unit can be marked
-  complete.
+- **Unit 10 real-provider correction in progress**: live testing proved the
+  Pollinations key/provider succeeds, but the Server Action rejected React/Next
+  `$ACTION_*` transport fields as unexpected input and returned
+  `invalid_request` before profile, repository, prompt, provider, or persistence
+  work. The action boundary, safe validation diagnostics, pre-provider validation,
+  and provider-backed allowance reset behavior are corrected and pass all
+  automated checks. A later dashboard attempt reached Pollinations but was rejected because the
+  provider's `privacy,secrets,shield` filter matched Blumo's negative guardrail
+  wording. That request option is corrected, migration
+  `20240001000016_ai_mission_failed_usage_reset.sql` is applied, and the rejected
+  usage row was removed. The preserved task is now retryable with zero consumed
+  provider-backed attempts. Three later provider responses were correctly
+  rejected because they serialized `acceptance_checklist` as a string; those
+  usage rows were removed after the `mission-v2` schema correction. The task is
+  retryable at monotonic claim version 4 with zero provider-backed failures. Unit
+  10 remains in progress until the user runs the refreshed retry and confirms the
+  real mission is stored and displayed. Unit 11 has not begun.
 
 ## Next Up
 
-1. Add the real `GITHUB_WEBHOOK_SECRET` locally and in the deployment environment.
-2. Configure the same secret and active webhook URL in the GitHub App.
-3. Manually verify every Unit 09
-   lifecycle and secret-exposure check.
-4. Review and merge Unit 09 only after those checks pass.
+1. Run the Unit 10 live generation and refresh check with the configured protected
+   Pollinations key; confirm the validated row in `daily_tasks`.
+2. Run the remaining Unit 10 persistence, duplicate-tab, outage, unsafe
+   output, access-change, usage/audit, secret-exposure, and responsive manual
+   checks from the active specification.
+3. Mark Unit 10 fully complete only after those checks pass. Do not begin Unit 11.
 
 ## Open Questions
 
 - Final production product domain is not selected.
 - Final logo mark is not selected.
 - Dark mode is deferred; decide after the light MVP core flow is stable.
-- Final Pollinations model and usage limit will be chosen during the AI provider unit.
 - Private beta size and invite method will be defined before launch.
 
 ## Architecture Decisions
@@ -257,4 +317,20 @@ The setup callback at `/api/github/setup` receives an `installation_id` query pa
 
 ## Session Notes
 
-Database migrations through Unit 09 have been applied to the hosted Supabase project, and the remote database is up to date. Unit 07 is complete and merged. Unit 08 is complete, manually verified, and merged into main; the verified GitHub installation and selected repository are stored in Supabase. Unit 09 implementation and automated verification are complete, but the real webhook secret is not present in `.env.local` and live GitHub deliveries have not been manually verified. Unit 09 therefore remains in progress. Unit 10 has not begun.
+Database migrations through the Unit 10 real-provider failed-usage reset are
+applied to the hosted Supabase project, database lint reports no errors, and the
+remote database is up to date. Unit 10 implementation and the complete automated
+gate pass (lint, typecheck, 234 tests, and build). The protected Pollinations key
+is configured, but live provider and responsive signed-in manual verification
+remain pending because no browser instance was available to the agent. Subsequent
+user testing and live diagnosis reproduced an HTTP 400 only with
+Pollinations `privacy,secrets,shield`; the exact request returns HTTP 200 with the
+documented `sexual,violence` categories. The failed usage was deleted after the
+reset trigger correction, leaving the preserved task retryable with claim version
+1 and zero provider-backed failures. Subsequent real responses exposed a
+prose-contract mismatch that returned `acceptance_checklist` as a string;
+`mission-v2` now uses an explicit JSON-Schema-shaped contract. Sanitized live
+probes confirm an array response and complete validation success. The three failed
+usage rows were removed, leaving the task retryable at monotonic claim version 4
+with zero provider-backed failures. A real persisted mission and refreshed
+dashboard display are still pending. Unit 11 has not begun.

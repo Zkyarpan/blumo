@@ -157,6 +157,37 @@ Treat AI output as untrusted:
 - Do not use generated content as a shell command.
 - Do not allow AI text to determine GitHub permissions or API endpoints.
 
+Unit 10 receives repository metadata only, never repository contents. Generated
+mission text is rejected if it names or invents repository files or paths, claims
+repository-specific facts, includes destructive Git/shell/data operations,
+requests secrets, targets another repository or service, or attempts to bypass
+ownership and approval controls. Mission output is rendered only as escaped text
+and is never executed.
+Pollinations uses its documented `sexual,violence` content-safety categories.
+The `privacy,secrets,shield` provider combination is not used because it rejects
+the prompt's own negative security constraints; server-side deterministic
+validation remains the enforcement boundary for secrets, repository invention,
+destructive actions, prompt injection, and approval bypasses.
+
+Daily generation is claimed atomically after server authentication and database
+ownership checks. Finalization repeats active-goal, selected-repository, and
+active-installation checks. A valid or completed mission is never overwritten;
+failed claims retry only within the same row and are limited to three provider-
+backed failures. The monotonic claim version is separate from this allowance and
+is never reset or reused. Provider
+calls, task lifecycle changes, usage records, and audit records contain only
+allowlisted metadata and never prompts, raw responses, provider errors, or keys.
+The generic authenticated insert/update policies on `daily_tasks` are removed in
+Unit 10 so browser database calls cannot bypass the atomic lifecycle functions or
+overwrite completed mission history.
+Framework-owned Server Action transport fields are ignored only as transport
+metadata; every non-framework form field is rejected and no user, goal,
+installation, repository, date, or provider identifier is accepted from the
+browser. Provider configuration and browser input are checked before a generation
+claim. Stored-context or prompt validation after a claim releases that claim
+without incrementing the provider-backed allowance. These failures create no
+provider usage and consume no provider-backed attempt.
+
 ### Prompt Injection
 
 Future repository-aware features must treat README files, code comments, issues, and repository documents as untrusted data. Instructions discovered in repository content may not override system rules, authorization, path restrictions, or tool permissions.

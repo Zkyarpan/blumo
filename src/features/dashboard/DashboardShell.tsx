@@ -44,6 +44,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
     completedTaskCount,
     installationStatus,
     selectedRepository,
+    todayMission,
   } = data;
 
   const displayName =
@@ -73,7 +74,12 @@ export function DashboardShell({ data }: DashboardShellProps) {
       {/* Top row: mission (2/3) + GitHub connection (1/3) */}
       <div className="grid gap-6 md:grid-cols-3">
         <div className="md:col-span-2">
-          <MissionCard />
+          <MissionCard
+            activeGoal={activeGoal}
+            installationStatus={installationStatus}
+            selectedRepository={selectedRepository}
+            todayMission={todayMission}
+          />
         </div>
         <div className="md:col-span-1">
           <GitHubConnectionCard
