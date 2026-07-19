@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, Controller, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -59,12 +60,16 @@ const TASK_TYPE_LABELS: Record<string, string> = {
 };
 
 export function OnboardingForm() {
+  const router = useRouter();
   const [serverResult, formAction] = useActionState(
     submitOnboarding,
     INITIAL_STATE
   );
   const [isPending, startTransition] = useTransition();
   const firstErrorRef = useRef<HTMLElement | null>(null);
+  // Track whether the form was submitted at least once to avoid navigating
+  // on the identical initial state which also has ok:true.
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const {
     register,
@@ -84,21 +89,25 @@ export function OnboardingForm() {
     },
   });
 
+  // Navigate to /dashboard once the action returns ok:true after a real submission.
+  useEffect(() => {
+    if (hasSubmitted && serverResult.ok && !isPending) {
+      router.push("/dashboard");
+    }
+  }, [hasSubmitted, serverResult, isPending, router]);
+
   // Sync server-side field errors back into react-hook-form
   useEffect(() => {
-    if (
-      !serverResult.ok &&
-      serverResult.error.fieldErrors
-    ) {
+    if (!serverResult.ok && serverResult.error.fieldErrors) {
       const fieldErrors = serverResult.error.fieldErrors;
-      (
-        Object.keys(fieldErrors) as Array<keyof FormValues>
-      ).forEach((field) => {
-        const msgs = fieldErrors[field];
-        if (msgs?.[0]) {
-          setError(field, { message: msgs[0] });
+      (Object.keys(fieldErrors) as Array<keyof FormValues>).forEach(
+        (field) => {
+          const msgs = fieldErrors[field];
+          if (msgs?.[0]) {
+            setError(field, { message: msgs[0] });
+          }
         }
-      });
+      );
     }
   }, [serverResult, setError]);
 
@@ -111,6 +120,7 @@ export function OnboardingForm() {
   });
 
   function onSubmit(data: FormValues) {
+    setHasSubmitted(true);
     const formData = new FormData();
     formData.set("title", data.title);
     formData.set("technology", data.technology);
@@ -248,7 +258,9 @@ export function OnboardingForm() {
                 }
                 aria-invalid={!!errors.experience_level}
               >
-                <SelectValue placeholder="Select level" />
+                <SelectValue placeholder="Select level">
+                  {(v: string) => EXPERIENCE_LABELS[v] ?? v}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {EXPERIENCE_LEVELS.map((level) => (
@@ -302,7 +314,9 @@ export function OnboardingForm() {
                 }
                 aria-invalid={!!errors.daily_minutes}
               >
-                <SelectValue placeholder="Select time" />
+                <SelectValue placeholder="Select time">
+                  {(v: string) => DAILY_MINUTES_LABELS[Number(v)] ?? v}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {DAILY_MINUTES.map((mins) => (
@@ -356,7 +370,9 @@ export function OnboardingForm() {
                 }
                 aria-invalid={!!errors.task_type}
               >
-                <SelectValue placeholder="Select type" />
+                <SelectValue placeholder="Select type">
+                  {(v: string) => TASK_TYPE_LABELS[v] ?? v}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {TASK_TYPES.map((type) => (
@@ -410,7 +426,11 @@ export function OnboardingForm() {
                 }
                 aria-invalid={!!errors.timezone}
               >
-                <SelectValue placeholder="Select timezone" />
+                <SelectValue placeholder="Select timezone">
+                  {(v: string) =>
+                    TIMEZONES.find((tz) => tz.value === v)?.label ?? v
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {TIMEZONES.map((tz) => (

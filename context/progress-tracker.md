@@ -11,12 +11,11 @@ Update this file after every meaningful implementation change.
 - Unit 04: Authenticated Onboarding — complete and merged into main.
 - Unit 05: Authenticated Dashboard Shell — complete and merged into main.
 - Unit 06: GitHub App Registration and Installation Start — **complete and merged into main.**
-- **Unit 07: GitHub App Setup Callback and Installation Verification — planning.**
+- **Unit 07: GitHub App Setup Callback and Installation Verification — in progress.**
 
 ## Current Goal
 
-- Write the Unit 07 specification: GitHub App setup callback, installation
-  verification, and installation storage.
+- Build and verify the GitHub App setup callback.
 
 ## Completed
 
@@ -110,6 +109,17 @@ Update this file after every meaningful implementation change.
 - `src/features/dashboard/dashboard.service.test.ts` — 6 new tests.
 - Total test count: 32 (up from 26). All pass.
 - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass (no warnings).
+- **Unit 07 complete**: GitHub App setup callback and installation verification implemented.
+  - `src/lib/github/callback-params.schema.ts` — Zod schema for GitHub callback query params.
+  - `src/lib/github/app-auth.ts` — server-only App-authenticated Octokit factory.
+  - `src/lib/github/installation-lookup.ts` — server-only GitHub API installation retrieval; returns null on 404.
+  - `src/features/github/installation.service.ts` — orchestrates verification, ownership check, conflict detection, upsert, and audit log.
+  - `src/app/api/github/setup/route.ts` — redirect-only GET handler for the GitHub App setup callback.
+  - `src/features/github/ConnectGitHubPage.tsx` — extended with error prop and error banner for all 8 error states.
+  - `src/app/(app)/github/connect/page.tsx` — passes searchParams error to ConnectGitHubPage.
+  - All Unit 06 missing files also created: `github-app.config.ts`, `installation-url.ts`, `ConnectGitHubButton.tsx`, `/github/connect` page/loading, proxy `/github` path, dashboard link.
+  - 22 new tests added. Total: 54 tests.
+  - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass.
 - **Unit 06 complete and merged into main**: GitHub App registration and installation start page implemented.
 - The **Blumo Development** GitHub App is created and installed for testing.
   App ID: 4335897. Slug: `blumo-development`. Installed on the developer's
@@ -144,11 +154,11 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- Unit 07 specification: `context/specs/07-github-installation-callback.md`.
+None.
 
 ## Next Up
 
-1. Implement Unit 07 after the specification is reviewed and merged.
+1. Verify and merge Unit 07.
 
 ## Open Questions
 
@@ -198,4 +208,4 @@ The setup callback at `/api/github/setup` receives an `installation_id` query pa
 
 ## Session Notes
 
-Database migrations have been applied to the hosted Supabase project. The schema is live. Units 01–06 are verified and merged into main. The Blumo Development GitHub App is created and installed. Unit 07 specification is being written.
+Database migrations have been applied to the hosted Supabase project. The schema is live. Units 01–07 are implemented and all automated checks pass. The Blumo Development GitHub App is created and installed. Unit 07 implementation is complete — awaiting verification and merge.
