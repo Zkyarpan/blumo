@@ -21,6 +21,8 @@ const ERROR_MESSAGES: Record<string, string> = {
     "Organisation installations are not yet supported. Please install the App on a personal account.",
   installation_conflict:
     "This installation is already connected to another Blumo account. Contact support if you believe this is an error.",
+  installation_suspended:
+    "Your GitHub App installation is suspended. Restore it in GitHub before synchronizing repositories.",
   server_error: "Something went wrong on our end. Please try again.",
 };
 
@@ -39,6 +41,7 @@ export function ConnectGitHubPage({
   error,
 }: ConnectGitHubPageProps) {
   const errorMessage = getErrorMessage(error);
+  const isSuspended = error === "installation_suspended";
 
   return (
     <div className="max-w-lg mx-auto space-y-4">
@@ -47,19 +50,36 @@ export function ConnectGitHubPage({
           className="rounded-lg border p-4 text-sm"
           role="alert"
           style={{
-            backgroundColor: "var(--state-error-soft)",
-            borderColor: "var(--state-error)",
-            color: "var(--state-error)",
+            backgroundColor: isSuspended
+              ? "var(--state-warning-soft)"
+              : "var(--state-error-soft)",
+            borderColor: isSuspended
+              ? "var(--state-warning)"
+              : "var(--state-error)",
+            color: isSuspended
+              ? "var(--state-warning)"
+              : "var(--state-error)",
           }}
         >
-          <p className="font-medium mb-1">Could not connect GitHub</p>
+          <p className="font-medium mb-1">
+            {isSuspended ? "GitHub installation suspended" : "Could not connect GitHub"}
+          </p>
           <p>{errorMessage}</p>
-          <a
-            href="/github/connect"
-            className="mt-2 inline-block underline text-sm font-medium"
-          >
-            Try again
-          </a>
+          {isSuspended ? (
+            <a
+              href="https://github.com/settings/installations"
+              className="mt-2 inline-block text-sm font-medium underline"
+            >
+              Open GitHub App settings
+            </a>
+          ) : (
+            <a
+              href="/github/connect"
+              className="mt-2 inline-block text-sm font-medium underline"
+            >
+              Try again
+            </a>
+          )}
         </div>
       )}
 
