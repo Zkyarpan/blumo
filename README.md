@@ -32,6 +32,11 @@ npm run build
 
 See the [`context/`](./context/) folder for full product, architecture, security, and implementation documentation.
 
+Mission generation uses a server-only Pollinations secret. Copy `.env.example`
+to `.env.local`, set `POLLINATIONS_API_KEY`, and optionally override
+`POLLINATIONS_TEXT_MODEL` (the default is `openai`). Never prefix either value
+with `NEXT_PUBLIC_`.
+
 Blumo is not a fake-commit generator. Its product value is helping developers learn consistently, produce useful work, document progress, and build credible evidence of growth.
 
 ## Product Summary

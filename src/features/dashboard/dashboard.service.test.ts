@@ -3,9 +3,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: vi.fn(),
 }));
+vi.mock("@/features/missions/mission-generation.repository", () => ({
+  getOwnedTodayMission: vi.fn(),
+}));
 vi.mock("server-only", () => ({}));
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getOwnedTodayMission } from "@/features/missions/mission-generation.repository";
 
 const USER_ID = "user-test-123";
 
@@ -33,6 +37,7 @@ const INSTALLATION = { id: "installation-1", status: "active" };
 
 const REPOSITORY = {
   id: "repository-1",
+  name: "blumo-notes",
   full_name: "arpankarki/blumo-notes",
   default_branch: "develop",
 };
@@ -126,6 +131,7 @@ describe("getDashboardData", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+    vi.mocked(getOwnedTodayMission).mockResolvedValue({ kind: "none" });
   });
 
   it("1. returns DashboardData with completedTaskCount: 3 when profile, goal, and tasks exist", async () => {

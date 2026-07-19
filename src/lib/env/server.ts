@@ -46,6 +46,11 @@ const serverEnvSchema = z.object({
   // Optional until Unit 07 OAuth flow
   GITHUB_APP_CLIENT_ID: z.string().optional(),
   GITHUB_APP_CLIENT_SECRET: z.string().optional(),
+
+  // Pollinations (Unit 10). The key is validated lazily by the provider so
+  // unrelated routes can still build when mission generation is not configured.
+  POLLINATIONS_API_KEY: z.string().optional(),
+  POLLINATIONS_TEXT_MODEL: z.string().optional(),
 });
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -67,6 +72,8 @@ function parseServerEnv(): ServerEnv {
     GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET,
     GITHUB_APP_CLIENT_ID: process.env.GITHUB_APP_CLIENT_ID,
     GITHUB_APP_CLIENT_SECRET: process.env.GITHUB_APP_CLIENT_SECRET,
+    POLLINATIONS_API_KEY: process.env.POLLINATIONS_API_KEY,
+    POLLINATIONS_TEXT_MODEL: process.env.POLLINATIONS_TEXT_MODEL,
   });
 
   if (!result.success) {

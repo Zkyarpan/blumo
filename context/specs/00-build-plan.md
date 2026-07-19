@@ -173,43 +173,36 @@ Result:
 
 ## Phase 3 — AI Mission Workflow
 
-### Unit 10: AI Provider Boundary
+### Unit 10: AI Mission Generation
 
 Build:
 
 - `AIProvider` interface.
 - Pollinations adapter.
-- Structured prompt.
-- Zod output schema.
+- Versioned structured prompt using the active goal, selected repository metadata,
+  recent completed missions, and experience level.
+- Strict mission Zod output and deterministic safety validation.
 - Safe provider error mapping.
-- Usage record.
+- Timeout and bounded transient retry handling.
+- Authenticated generation action with ownership checks.
+- Atomic one-mission-per-user-local-day persistence and bounded retry claims.
+- Usage and sanitized audit records.
+- Dashboard empty, loading, success, error, and retry states.
 
 Dependencies:
 
-- Unit 04.
+- Units 05 and 09.
 
 Result:
 
-- A controlled server test produces a validated Blumo task object.
+- A user generates, saves, and views one validated daily mission without any
+  repository content read or GitHub write.
 
-### Unit 11: Mission Generation
+### Unit 11: Reserved
 
-Build:
-
-- Generate mission action.
-- User and goal ownership checks.
-- Generation limits.
-- Save generated task.
-- Dashboard mission state.
-- Retry/error experience.
-
-Dependencies:
-
-- Unit 05 and Unit 10.
-
-Result:
-
-- A user generates and opens a saved mission.
+The prior Unit 11 mission-generation scope moved into the reviewed Unit 10
+specification. Unit 11 has no authorized implementation scope yet and must not be
+started until a separate specification is reviewed and merged.
 
 ### Unit 12: Task Workspace
 
@@ -225,7 +218,7 @@ Build:
 
 Dependencies:
 
-- Unit 11.
+- Unit 10 and a reviewed decision for the reserved Unit 11 slot.
 
 Result:
 

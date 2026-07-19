@@ -171,13 +171,15 @@ Not required for the first manual MVP. Introduce a queue or managed workflow ser
 
 ### AI Provider Interface
 
-All feature code calls a provider-neutral interface:
+Mission feature code calls a provider-neutral, server-only interface:
 
 ```ts
 interface AIProvider {
-  generateDailyTask(input: GenerateDailyTaskInput): Promise<GeneratedDailyTask>;
-  reviewTask(input: ReviewTaskInput): Promise<TaskReview>;
-  generateWeeklySummary(input: WeeklySummaryInput): Promise<WeeklySummary>;
+  readonly providerId: string;
+  generateMission(
+    request: ProviderMissionRequest,
+    options: { signal: AbortSignal },
+  ): Promise<ProviderMissionResult>;
 }
 ```
 
@@ -192,25 +194,32 @@ For the MVP, send only:
 - Experience level.
 - Available time.
 - Task type.
-- Recent completed-task titles when required for repetition avoidance.
+- Selected repository name, default branch, and visibility metadata.
+- Up to five recent completed-mission titles, learning outcomes, difficulty, and
+  scheduled dates when required for repetition avoidance.
 
 Do not send private repository source code.
 
 ### AI Output Rules
 
-AI must return a structured object containing:
+Unit 10 AI must return a structured object containing:
 
 - Title.
-- Summary.
-- Instructions.
-- Acceptance checklist.
-- Suggested safe path.
-- Markdown draft.
-- Commit message.
-- Skill tags.
+- Description.
 - Estimated minutes.
+- Difficulty.
+- Acceptance checklist.
+- Suggested commit message.
+- Suggested branch, which must equal the verified repository default branch.
+- Learning outcome.
 
 Validate every response with Zod before storage or display.
+
+Unit 10 does not request or generate a repository path, repository file content,
+instructions, Markdown draft, or skill tags. Those fields remain null until a
+later reviewed task-workspace specification. Provider calls have bounded timeouts
+and transient retries; one atomic database claim prevents duplicate missions for
+the same user-local day.
 
 ## Commit Architecture
 

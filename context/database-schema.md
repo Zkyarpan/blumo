@@ -121,11 +121,17 @@ Constraints:
 | `generated_markdown` | text | Original validated draft |
 | `user_markdown` | text | User-edited final content |
 | `suggested_commit_message` | text | Original suggestion |
+| `suggested_branch` | text | Verified default branch suggested for the mission; nullable for legacy rows |
+| `difficulty` | text | `beginner`, `intermediate`, or `advanced`; nullable for legacy rows |
+| `learning_outcome` | text | Validated mission learning outcome; nullable for legacy rows |
 | `user_commit_message` | text | User-edited final message |
-| `status` | text | `generated`, `in_progress`, `ready`, `committing`, `committed`, `failed`, `archived` |
+| `status` | text | `generating`, `generated`, `in_progress`, `ready`, `committing`, `committed`, `failed`, `archived` |
 | `ai_provider` | text | Provider identifier |
 | `ai_model` | text | Model identifier where available |
-| `generation_attempts` | integer | Default 1 |
+| `prompt_version` | text | Versioned prompt identifier; nullable for legacy rows |
+| `generation_error_code` | text | Nullable allowlisted internal code; never a raw provider error |
+| `generation_attempts` | integer | Monotonic claim version, default 1; never reset or reused |
+| `provider_generation_attempts` | integer | Failed claim versions that reached the provider; `0` to `3` |
 | `approved_at` | timestamptz | Nullable |
 | `completed_at` | timestamptz | Nullable |
 | `created_at` | timestamptz | Default now |
@@ -133,9 +139,25 @@ Constraints:
 
 Constraints:
 
-- One generated task per `user_id + scheduled_date + goal_id` unless explicitly regenerated within the same task.
+- Unique `user_id + scheduled_date`; one task row per user-local day.
+- A user has at most one active mission across `generating`, `generated`,
+  `in_progress`, `ready`, and `committing`; completed, failed, and archived rows
+  remain as history and do not block a later mission.
+- A failed generation is retried within the same row, up to three failed claims
+  that reached the provider.
+- Application-input, stored-context, prompt-construction, and provider-
+  configuration failures do not consume the provider-backed allowance. Input
+  and configuration checks run before the atomic claim; a stored-context or
+  prompt failure releases the claimed row without incrementing
+  `provider_generation_attempts`. Deleting all failed-task usage rows during
+  local development resets the provider-backed allowance and changes the fixed
+  error category to retryable `unknown_provider_error`, while preserving the
+  monotonic claim version and mission history.
+- A valid generated or completed mission is never regenerated or overwritten.
 - Status transitions validated in server code.
 - Final content must not be empty before approval.
+- Unit 10 mission fields are required when `prompt_version` is non-null and the
+  task has reached `generated` or a later workflow status.
 
 ### `commits`
 
@@ -202,6 +224,7 @@ Constraints:
 | `output_units` | integer | Nullable provider measurement |
 | `estimated_cost_minor` | integer | Nullable internal estimate |
 | `success` | boolean | Result |
+| `provider_call_id` | uuid | Nullable for legacy rows; unique idempotency key for one provider HTTP call |
 | `created_at` | timestamptz | Default now |
 
 ### `audit_logs`
@@ -224,6 +247,26 @@ Never store:
 - Full unfiltered webhook headers.
 - Secret API values.
 - Raw provider errors containing sensitive request information.
+
+### Mission Generation Functions
+
+Unit 10 adds service-role-only, fixed-search-path functions that atomically claim,
+finalize, and fail daily mission generation. They independently verify the
+authenticated owner, active goal, selected active repository, and active verified
+installation. The claim function enforces the unique user-local day and the
+three-provider-backed-failure limit. Finalize/fail operations require the current claim version,
+write idempotent AI usage records, and write sanitized lifecycle audit events in
+the same transaction. `public`, `anon`, and `authenticated` receive no execution
+privilege on these functions.
+The claim returns the user's existing active mission, including one from an
+earlier local date, instead of creating another active mission.
+
+Unit 10 removes the generic authenticated insert/update policies from
+`daily_tasks`. Authenticated users retain owner-scoped reads, while mission
+lifecycle writes occur only through the authenticated server action and the
+service-role-only functions above. A later reviewed task-workspace unit must add
+narrow mutation functions for editable fields rather than restoring broad row
+updates.
 
 ### `github_webhook_deliveries`
 
