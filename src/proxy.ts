@@ -11,6 +11,7 @@ const PROTECTED_PATHS = [
   "/history",
   "/settings",
   "/tasks",
+  "/github",
 ];
 
 function isProtectedPath(pathname: string): boolean {
