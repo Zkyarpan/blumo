@@ -18,7 +18,7 @@ referenced by `context/specs/06-github-app-installation-start.md`.
    | Homepage URL | `http://localhost:3000` |
    | Callback URL | *(leave blank — not used by this App)* |
    | Setup URL | `http://localhost:3000/api/github/setup` |
-   | Webhook URL | `https://smee.io/<your-channel>` (or leave disabled for Unit 06) |
+   | Webhook URL | Public HTTPS origin plus `/api/github/webhook` (use Smee forwarding locally) |
    | Webhook secret | A randomly generated secret (store in `.env.local`) |
 
    > **Callback URL vs Setup URL:** Blumo uses the GitHub App *setup URL*
@@ -27,8 +27,8 @@ referenced by `context/specs/06-github-app-installation-start.md`.
    > `installation_id` query parameter. The Callback URL field can be left
    > empty until a future unit requires user-to-app OAuth.
 
-3. Under **Webhook**, set **Active** to **unchecked** for Unit 06.
-   Webhooks are activated and verified in Unit 09.
+3. Under **Webhook**, set **Active** to **checked**. The Unit 09 endpoint is
+   `POST /api/github/webhook`; GitHub must be able to reach it through HTTPS.
 
 4. Under **Repository permissions**, set:
 
@@ -48,11 +48,12 @@ referenced by `context/specs/06-github-app-installation-start.md`.
    - Issues
    - Pull requests
 
-5. Under **Subscribe to events**, check:
+5. Ensure GitHub delivers the default GitHub App lifecycle events:
    - Installation
    - Installation repositories
 
-   Do not check any other events.
+   These lifecycle events are default GitHub App events rather than ordinary
+   optional subscriptions. Do not enable unrelated events or broaden permissions.
 
 6. Under **Where can this GitHub App be installed?**, select:
    **Only on this account** (keep the app private during development).
@@ -145,14 +146,19 @@ After completing Unit 06 implementation:
 
 ## 7. Webhook Forwarding for Local Development (Unit 09)
 
-Webhook processing is deferred to Unit 09. When you reach that unit,
-use [smee.io](https://smee.io) or the
+Webhook processing is implemented at `POST /api/github/webhook`. For local
+verification, use [smee.io](https://smee.io) or the
 [GitHub CLI webhook forwarder](https://cli.github.com/) to forward GitHub
 webhook events to `http://localhost:3000/api/github/webhook`.
 
 ```bash
 npx smee-client --url https://smee.io/<channel> --path /api/github/webhook --port 3000
 ```
+
+Keep the Webhook **Active** toggle enabled and use the same high-entropy secret in
+GitHub and `GITHUB_WEBHOOK_SECRET`. Test `installation` and
+`installation_repositories` deliveries from the GitHub App's **Advanced** page.
+Never paste the webhook secret into Smee messages, logs, screenshots, or source.
 
 ---
 

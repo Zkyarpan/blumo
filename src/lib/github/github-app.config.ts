@@ -6,7 +6,7 @@ export type GitHubAppConfig = {
   appId: number;
   appSlug: string;
   privateKey: string;
-  webhookSecret: string | undefined;
+  webhookSecret: string;
   clientId: string | undefined;
   clientSecret: string | undefined;
 };

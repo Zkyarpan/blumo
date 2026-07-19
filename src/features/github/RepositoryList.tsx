@@ -16,6 +16,7 @@ interface RepositoryListProps {
   repositories: SyncedRepository[];
   currentSelectionId: string | null;
   syncError?: SyncError;
+  installationStatus?: "active" | "suspended";
 }
 
 const SELECTION_ERRORS: Record<string, string> = {
@@ -34,6 +35,7 @@ export function RepositoryList({
   repositories: initialRepositories,
   currentSelectionId,
   syncError,
+  installationStatus = "active",
 }: RepositoryListProps) {
   const router = useRouter();
   const [repositories, setRepositories] = useState(initialRepositories);
@@ -42,6 +44,7 @@ export function RepositoryList({
   const [refreshing, setRefreshing] = useState(false);
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const selectionDisabled = installationStatus !== "active";
 
   function retrySync() {
     setRefreshing(true);
@@ -166,9 +169,15 @@ export function RepositoryList({
   return (
     <Card className="rounded-xl border" style={{ borderColor: "var(--border-default)" }}>
       <CardHeader className="border-b" style={{ borderColor: "var(--border-default)" }}>
-        <CardTitle>Select one active repository</CardTitle>
+        <CardTitle>
+          {selectionDisabled
+            ? "Repositories unavailable while suspended"
+            : "Select one active repository"}
+        </CardTitle>
         <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-          Blumo will use this repository for future approved missions.
+          {selectionDisabled
+            ? "Your repository records are preserved, but GitHub actions are disabled."
+            : "Blumo will use this repository for future approved missions."}
         </p>
       </CardHeader>
       <CardContent className="space-y-4 pt-1">
@@ -250,7 +259,12 @@ export function RepositoryList({
                     <Button
                       type="button"
                       variant={isSelected ? "secondary" : "default"}
-                      disabled={isSelected || !isActive || pendingId !== null}
+                      disabled={
+                        selectionDisabled ||
+                        isSelected ||
+                        !isActive ||
+                        pendingId !== null
+                      }
                       aria-pressed={isSelected}
                       onClick={() => handleSelect(repository)}
                     >

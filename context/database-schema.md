@@ -214,6 +214,7 @@ Constraints:
 | `resource_type` | text | `installation`, `repository`, `task`, `commit`, etc. |
 | `resource_id` | uuid | Nullable |
 | `metadata` | jsonb | Sanitized details |
+| `github_delivery_id` | text | Nullable; unique for webhook audit events |
 | `created_at` | timestamptz | Default now |
 
 Never store:
@@ -223,6 +224,32 @@ Never store:
 - Full unfiltered webhook headers.
 - Secret API values.
 - Raw provider errors containing sensitive request information.
+
+### `github_webhook_deliveries`
+
+Server-only delivery ledger for GitHub webhook idempotency and recovery.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `delivery_id` | text | Unique `X-GitHub-Delivery` GUID |
+| `event_name` | text | Validated event name |
+| `action` | text | Nullable validated action |
+| `payload_sha256` | text | SHA-256 of the verified raw payload |
+| `installation_id` | bigint | Nullable GitHub installation identifier |
+| `status` | text | `processing`, `completed`, `ignored`, or `failed` |
+| `attempt_count` | integer | Claim version for safe recovery |
+| `claimed_at` | timestamptz | Latest claim time |
+| `processed_at` | timestamptz | Nullable completion time |
+| `last_error_code` | text | Nullable sanitized fixed code |
+| `created_at` | timestamptz | Default now |
+| `updated_at` | timestamptz | Default now |
+
+RLS is enabled with no browser/user policy. `anon` and `authenticated` have no
+table or function access. Service-role-only database functions atomically claim a
+delivery, apply a verified lifecycle transition with its audit row, and reject a
+stale claim version. The table never stores a raw payload, signature, secret,
+installation token, repository name, account login, or user ID.
 
 ## Row Level Security Model
 

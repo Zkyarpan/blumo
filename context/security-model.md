@@ -196,6 +196,19 @@ The GitHub webhook endpoint must:
 6. Respond quickly.
 7. Move expensive future work to a background boundary.
 
+Unit 09 fixes the endpoint at `POST /api/github/webhook`, accepts at most 1 MiB,
+and requires `application/json`, `X-Hub-Signature-256`, `X-GitHub-Event`, and a
+UUID `X-GitHub-Delivery`. The HMAC-SHA-256 digest is compared over the exact raw
+bytes with a constant-time comparison before UTF-8 decoding, JSON parsing, Zod
+validation, logging, or database access.
+
+Delivery IDs are claimed by a service-role-only transactional function. The
+stored installation ID, account ID, login, and type must match before user-owned
+rows change. Repository updates are additionally scoped by the verified user,
+internal installation UUID, and stable GitHub repository ID. Lifecycle changes,
+one sanitized audit row, and delivery completion are atomic. Raw payloads,
+signatures, provider errors, and secrets are never persisted or returned.
+
 Supported MVP events:
 
 - `installation`

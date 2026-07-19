@@ -39,8 +39,10 @@ const serverEnvSchema = z.object({
   GITHUB_APP_PRIVATE_KEY: z
     .string()
     .min(1, "GITHUB_APP_PRIVATE_KEY is required"),
-  // Webhook secret becomes required in Unit 09; allow empty locally until then.
-  GITHUB_WEBHOOK_SECRET: z.string().optional(),
+  // GitHub webhook HMAC secret (Unit 09). Server-only and required.
+  GITHUB_WEBHOOK_SECRET: z
+    .string()
+    .min(1, "GITHUB_WEBHOOK_SECRET is required"),
   // Optional until Unit 07 OAuth flow
   GITHUB_APP_CLIENT_ID: z.string().optional(),
   GITHUB_APP_CLIENT_SECRET: z.string().optional(),
