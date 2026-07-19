@@ -1,0 +1,163 @@
+# Blumo
+
+> **Grow every day.**
+
+Blumo is an AI-powered developer consistency platform for students and early-career developers. It turns a user's learning goal into one small, meaningful daily mission, lets the user complete or edit the work, and creates a user-approved contribution in a selected GitHub repository.
+
+Blumo is not a fake-commit generator. Its product value is helping developers learn consistently, produce useful work, document progress, and build credible evidence of growth.
+
+## Product Summary
+
+A Blumo user:
+
+1. Signs in with GitHub.
+2. Chooses a development goal, skill level, preferred task type, and available daily time.
+3. Installs the Blumo GitHub App on selected repositories.
+4. Receives or generates a small daily mission.
+5. Completes or edits the task.
+6. Reviews the exact file, content, and commit message.
+7. Approves the contribution.
+8. Sees the GitHub commit and progress history inside Blumo.
+
+## Main Tagline
+
+**Grow every day.**
+
+Supporting message:
+
+> Small, meaningful developer missions that help you learn, build, and stay consistent.
+
+## MVP Technology Stack
+
+| Area | Technology |
+|---|---|
+| Application | Next.js App Router + TypeScript |
+| Styling | Tailwind CSS + shadcn/ui |
+| Forms and validation | React Hook Form + Zod |
+| Authentication | Supabase Auth with GitHub |
+| Database | Supabase PostgreSQL |
+| Authorization | Supabase Row Level Security |
+| Repository access | GitHub App |
+| GitHub API | Octokit |
+| AI | Pollinations behind a provider interface |
+| Auth email delivery | Supabase Auth through Resend SMTP |
+| Product emails | Resend API |
+| Hosting | Vercel |
+| Scheduled work, later | Supabase Cron + Edge Functions |
+| Testing | Vitest + Testing Library; Playwright for key flows |
+| Analytics, later | PostHog |
+| Error monitoring, later | Sentry |
+| Payments, later | Stripe |
+
+## Why Authentication Has Two Steps
+
+For the MVP, Blumo uses two separate but related GitHub flows:
+
+1. **Continue with GitHub through Supabase Auth**
+   - Identifies the user.
+   - Creates and manages the Blumo website session.
+   - Does not give Blumo permission to change repositories.
+
+2. **Install the Blumo GitHub App**
+   - Lets the user choose which repositories Blumo may access.
+   - Grants only the required repository permissions.
+   - Allows Blumo to request short-lived installation tokens when an approved contribution is created.
+
+This separation is easier to build, explain, test, and secure for the first release.
+
+## Repository Safety Model
+
+During the MVP, Blumo may write only inside:
+
+```text
+blumo/**
+```
+
+Examples:
+
+```text
+blumo/README.md
+blumo/learning/2026-07-19-react-state.md
+blumo/challenges/2026-07-20-array-methods.md
+blumo/progress/summary.json
+```
+
+Blumo must block changes to sensitive paths including:
+
+```text
+.env
+.env.*
+.github/**
+credentials/**
+secrets/**
+node_modules/**
+```
+
+All MVP contributions require explicit user approval.
+
+## Folder Structure for This Planning Pack
+
+```text
+blumo-planning-pack/
+├── README.md
+├── CLAUDE.md
+├── AGENTS.md
+├── .env.example
+├── context/
+│   ├── project-overview.md
+│   ├── architecture.md
+│   ├── database-schema.md
+│   ├── security-model.md
+│   ├── email-and-notifications.md
+│   ├── ui-context.md
+│   ├── code-standards.md
+│   ├── ai-workflow-rules.md
+│   ├── progress-tracker.md
+│   └── specs/
+│       ├── 00-build-plan.md
+│       └── 01-project-foundation.md
+└── docs/
+    ├── how-to-start.md
+    ├── github-app-setup.md
+    └── resend-supabase-setup.md
+```
+
+## How to Start
+
+Read and follow:
+
+```text
+docs/how-to-start.md
+```
+
+The first implementation unit is:
+
+```text
+context/specs/01-project-foundation.md
+```
+
+Do not build every feature at once. Complete one build unit, verify it, update the progress tracker, and only then create the next unit specification.
+
+## First Working Milestone
+
+The first real Blumo milestone is:
+
+```text
+Sign in with GitHub
+→ Complete onboarding
+→ Install Blumo GitHub App
+→ Select one repository
+→ Generate one AI learning note
+→ Edit and preview it
+→ Approve the contribution
+→ Open the successful commit on GitHub
+```
+
+## Product Principles
+
+1. Meaningful progress is more important than contribution count.
+2. AI assists the user; it does not impersonate the user.
+3. Users see and approve changes before Blumo writes to GitHub.
+4. Blumo requests the minimum GitHub permissions required.
+5. Repository files and AI output are treated as untrusted input.
+6. The MVP remains deliberately small until the complete core flow works.
