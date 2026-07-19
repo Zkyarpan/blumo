@@ -1,8 +1,73 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* ───────────────────────────────────────────────
+   Blumo semantic design tokens
+   Source of truth: context/ui-context.md
+   ─────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --bg-base: #F7FAF8;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #EEF6F0;
+  --bg-elevated: #FFFFFF;
+
+  /* Text */
+  --text-primary: #132018;
+  --text-secondary: #3F5A49;
+  --text-muted: #6B7D71;
+  --text-inverse: #FFFFFF;
+
+  /* Accent */
+  --accent-primary: #2E9D5B;
+  --accent-primary-hover: #247E49;
+  --accent-soft: #DCF5E5;
+  --accent-strong: #16683A;
+
+  /* Borders */
+  --border-default: #D9E5DC;
+  --border-strong: #B9CCBE;
+
+  /* Focus */
+  --focus-ring: #69C58D;
+
+  /* States */
+  --state-success: #168A4A;
+  --state-success-soft: #DDF5E7;
+  --state-warning: #B96B12;
+  --state-warning-soft: #FFF0D8;
+  --state-error: #C43D47;
+  --state-error-soft: #FCE4E7;
+  --state-info: #2563A6;
+  --state-info-soft: #E4EFFB;
+
+  /* Code */
+  --code-bg: #102017;
+  --code-text: #DDF5E7;
+
+  /* shadcn/radix overrides — mapped to Blumo tokens */
+  --background: #F7FAF8;
+  --foreground: #132018;
+  --card: #FFFFFF;
+  --card-foreground: #132018;
+  --popover: #FFFFFF;
+  --popover-foreground: #132018;
+  --primary: #2E9D5B;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EEF6F0;
+  --secondary-foreground: #3F5A49;
+  --muted: #EEF6F0;
+  --muted-foreground: #6B7D71;
+  --accent: #DCF5E5;
+  --accent-foreground: #16683A;
+  --destructive: #C43D47;
+  --border: #D9E5DC;
+  --input: #D9E5DC;
+  --ring: #69C58D;
+  --radius: 0.625rem;
 }
 
 @theme inline {
@@ -10,17 +75,42 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  html {
+    @apply font-sans;
+  }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
 }

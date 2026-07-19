@@ -5,11 +5,11 @@ Update this file after every meaningful implementation change.
 ## Current Phase
 
 - Planning complete.
-- Project implementation not started.
+- **Unit 01: Project Foundation — complete.**
 
 ## Current Goal
 
-- Create the Blumo repository and complete Unit 01: Project Foundation.
+- Begin Unit 02: Supabase Auth.
 
 ## Completed
 
@@ -30,6 +30,22 @@ Update this file after every meaningful implementation change.
 - Six-file context system prepared.
 - Build plan prepared.
 - First unit specification prepared.
+- **Unit 01 complete**: Next.js project created with TypeScript, Tailwind CSS v4, App Router, `src/` dir, and `@/*` alias.
+- shadcn/ui initialized with `base-nova` style; `button`, `card`, `badge`, `separator` components added.
+- Folder structure created: `(marketing)/`, `(app)/`, `components/layout/`, `components/shared/`, `components/ui/`, `features/`, `lib/env/`, `lib/utils/`, `types/`.
+- Blumo semantic CSS tokens defined in `globals.css` (backgrounds, text, accent, borders, states, focus, code).
+- Geist Sans and Geist Mono configured through Next.js font system.
+- `src/lib/utils/cn.ts` created.
+- `src/lib/env/server.ts` (server-only, Zod schema skeleton) created.
+- `src/lib/env/public.ts` (NEXT_PUBLIC_APP_NAME, NEXT_PUBLIC_APP_URL) created.
+- Layout components created: `BlumoWordmark`, `MarketingHeader`, `MarketingFooter`, `AppHeader`, `PageContainer`.
+- Marketing home page (`/`) implemented with wordmark, tagline, product description, three-step explanation, and product-principle note.
+- Dashboard placeholder (`/dashboard`) implemented with app shell, mission card, GitHub connection card, and progress card.
+- Custom 404 not-found page created.
+- Vitest configured with jsdom; 6 tests pass (wordmark, env validation).
+- All scripts present: `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `test:watch`.
+- README updated with local commands and context folder link.
+- `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass.
 
 ## In Progress
 
@@ -37,10 +53,7 @@ Update this file after every meaningful implementation change.
 
 ## Next Up
 
-1. Create a new GitHub repository named `blumo`.
-2. Create the Next.js application.
-3. Copy this planning pack into the repository.
-4. Implement `context/specs/01-project-foundation.md`.
+1. Unit 02: Supabase Auth — GitHub OAuth, session management, protected routes, middleware.
 
 ## Open Questions
 

@@ -4,6 +4,34 @@
 
 Blumo is an AI-powered developer consistency platform for students and early-career developers. It turns a user's learning goal into one small, meaningful daily mission, lets the user complete or edit the work, and creates a user-approved contribution in a selected GitHub repository.
 
+## Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Run all checks before committing
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+```
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the development server at `http://localhost:3000` |
+| `npm run build` | Build the production bundle |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run ESLint |
+| `npm run typecheck` | Run TypeScript type checking (no output) |
+| `npm run test` | Run the Vitest test suite |
+| `npm run test:watch` | Run tests in watch mode |
+
+See the [`context/`](./context/) folder for full product, architecture, security, and implementation documentation.
+
 Blumo is not a fake-commit generator. Its product value is helping developers learn consistently, produce useful work, document progress, and build credible evidence of growth.
 
 ## Product Summary
