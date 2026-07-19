@@ -1,16 +1,8 @@
 import Link from "next/link";
 import { BlumoWordmark } from "@/components/shared/BlumoWordmark";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { Separator } from "@/components/ui/separator";
-import { LayoutDashboard, History, Settings } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
+import { MobileNav } from "@/components/layout/MobileNav";
 import { signOut } from "@/features/auth/sign-out.actions";
-
-const navLinks = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/history", label: "History", icon: History },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
 
 interface AppHeaderUser {
   displayName: string;
@@ -21,14 +13,17 @@ interface AppHeaderUser {
 interface AppHeaderProps {
   /** Authenticated user data. Undefined when running as unprotected placeholder. */
   user?: AppHeaderUser;
+  /** When true (default), renders the mobile hamburger nav on small screens. */
+  showMobileNav?: boolean;
 }
 
 /**
  * Top navigation bar for the authenticated application shell.
- * Shows brand, nav links, and the current user with a sign-out action.
+ * Navigation links have moved to AppSidebar (desktop) and MobileNav (mobile).
+ * This header shows the wordmark, user info, and sign-out control.
  */
-export function AppHeader({ user }: AppHeaderProps) {
-  /** Returns the first letter(s) of the display name for the avatar fallback. */
+export function AppHeader({ user, showMobileNav = true }: AppHeaderProps) {
+  /** Returns the first two initials of the display name. */
   function getInitials(name: string): string {
     const parts = name.trim().split(/\s+/);
     if (parts.length >= 2) {
@@ -46,35 +41,21 @@ export function AppHeader({ user }: AppHeaderProps) {
       }}
     >
       <PageContainer width="wide">
-        <div className="flex h-14 items-center gap-4">
+        <div className="flex h-14 items-center gap-3">
+          {/* Mobile nav trigger — shown only on smaller than lg */}
+          {showMobileNav && <MobileNav />}
+
+          {/* Wordmark */}
           <Link href="/dashboard" aria-label="Blumo dashboard">
             <BlumoWordmark size="md" />
           </Link>
-          <Separator
-            orientation="vertical"
-            className="h-5"
-            style={{ backgroundColor: "var(--border-default)" }}
-          />
-          <nav className="flex items-center gap-1 flex-1">
-            {navLinks.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                  "hover:bg-[var(--bg-subtle)]"
-                )}
-                style={{ color: "var(--text-secondary)" }}
-              >
-                <Icon size={16} aria-hidden="true" />
-                <span className="hidden sm:inline">{label}</span>
-              </Link>
-            ))}
-          </nav>
+
+          {/* Push user block to the right */}
+          <div className="flex-1" />
 
           {/* User area */}
           {user && (
-            <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
                 <span
                   className="text-sm font-medium leading-none"

@@ -1,8 +1,6 @@
 import { getUser } from "@/features/auth/get-user";
 import { AppHeader } from "@/components/layout/AppHeader";
-
-// TODO (Unit 02): Route protection is handled by middleware.
-// This layout fetches the user server-side to pass to the header.
+import { AppSidebar } from "@/components/layout/AppSidebar";
 
 export default async function AppLayout({
   children,
@@ -31,7 +29,8 @@ export default async function AppLayout({
       style={{ backgroundColor: "var(--bg-base)" }}
     >
       <AppHeader user={headerUser} />
-      <main className="flex-1">{children}</main>
+      <AppSidebar />
+      <main className="flex-1 lg:pl-56">{children}</main>
     </div>
   );
 }
