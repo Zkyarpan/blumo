@@ -125,7 +125,7 @@ Constraints:
 | `difficulty` | text | `beginner`, `intermediate`, or `advanced`; nullable for legacy rows |
 | `learning_outcome` | text | Validated mission learning outcome; nullable for legacy rows |
 | `user_commit_message` | text | User-edited final message |
-| `status` | text | `generating`, `generated`, `in_progress`, `ready`, `committing`, `committed`, `failed`, `archived` |
+| `status` | text | `generating`, `generated`, `approved`, `rejected`, `in_progress`, `completed`, `failed`, `archived` |
 | `ai_provider` | text | Provider identifier |
 | `ai_model` | text | Model identifier where available |
 | `prompt_version` | text | Versioned prompt identifier; nullable for legacy rows |
@@ -133,6 +133,10 @@ Constraints:
 | `generation_attempts` | integer | Monotonic claim version, default 1; never reset or reused |
 | `provider_generation_attempts` | integer | Failed claim versions that reached the provider; `0` to `3` |
 | `approved_at` | timestamptz | Nullable |
+| `rejected_at` | timestamptz | Nullable; Unit 11 rejection timestamp |
+| `current_mission_version_id` | uuid | Nullable FK to `mission_versions.id` |
+| `review_operation_status` | text | `idle` or `regenerating`; default `idle` |
+| `regeneration_count` | smallint | Default `0`; 0–2 |
 | `completed_at` | timestamptz | Nullable |
 | `created_at` | timestamptz | Default now |
 | `updated_at` | timestamptz | Default now |
@@ -141,8 +145,8 @@ Constraints:
 
 - Unique `user_id + scheduled_date`; one task row per user-local day.
 - A user has at most one active mission across `generating`, `generated`,
-  `in_progress`, `ready`, and `committing`; completed, failed, and archived rows
-  remain as history and do not block a later mission.
+  `approved`, and `in_progress`; or `review_operation_status = 'regenerating'`;
+  completed, failed, and archived rows remain as history.
 - A failed generation is retried within the same row, up to three failed claims
   that reached the provider.
 - Application-input, stored-context, prompt-construction, and provider-
@@ -248,6 +252,61 @@ Never store:
 - Secret API values.
 - Raw provider errors containing sensitive request information.
 
+### `mission_versions`
+
+Immutable snapshots of each valid AI mission version, created by Unit 11.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `task_id` | uuid | References `daily_tasks.id` |
+| `user_id` | uuid | References `profiles.id` |
+| `version_number` | integer | Positive, sequential per task |
+| `status` | text | `generated`, `approved`, or `rejected` |
+| `title` | text | Exact validated snapshot |
+| `description` | text | Exact validated snapshot |
+| `estimated_minutes` | integer | Unit 10 allowed values |
+| `difficulty` | text | Unit 10 allowed values |
+| `acceptance_checklist` | jsonb | Validated 2–6 string array |
+| `suggested_commit_message` | text | Exact validated snapshot |
+| `suggested_branch` | text | Exact validated snapshot |
+| `learning_outcome` | text | Exact validated snapshot |
+| `ai_provider` | text | Server-owned safe identifier |
+| `ai_model` | text | Nullable server-owned safe identifier |
+| `prompt_version` | text | Fixed prompt version |
+| `generation_claim_version` | integer | Monotonic source claim reference |
+| `approved_at` | timestamptz | Nullable |
+| `rejected_at` | timestamptz | Nullable |
+| `rejection_reason` | text | Nullable validated user text, max 500 chars |
+| `created_at` | timestamptz | Default now |
+
+RLS enabled; authenticated users select only rows where `user_id = auth.uid()`.
+No browser insert/update/delete. All writes via service-role-only functions.
+
+### `mission_regeneration_requests`
+
+Tracks bounded regeneration requests for rejected missions, created by Unit 11.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `task_id` | uuid | Owned logical mission |
+| `user_id` | uuid | Authenticated owner |
+| `source_version_id` | uuid | Rejected current source version |
+| `result_version_id` | uuid | Nullable successor version |
+| `status` | text | `processing`, `succeeded`, or `failed` |
+| `feedback` | text | Required validated text, 10–500 characters |
+| `claim_version` | integer | Positive monotonic stale-response guard |
+| `provider_attempts` | smallint | Provider-backed attempts for this source; 0–3 |
+| `error_code` | text | Nullable allowlisted fixed code |
+| `claimed_at` | timestamptz | Current claim time |
+| `completed_at` | timestamptz | Nullable |
+| `created_at` | timestamptz | Default now |
+| `updated_at` | timestamptz | Default now |
+
+RLS enabled; authenticated users select only rows where `user_id = auth.uid()`.
+No browser insert/update/delete. All writes via service-role-only functions.
+
 ### Mission Generation Functions
 
 Unit 10 adds service-role-only, fixed-search-path functions that atomically claim,
@@ -260,6 +319,8 @@ the same transaction. `public`, `anon`, and `authenticated` receive no execution
 privilege on these functions.
 The claim returns the user's existing active mission, including one from an
 earlier local date, instead of creating another active mission.
+The claim also locks the profile row to serialize with Unit 11 regeneration claims,
+and treats `review_operation_status = 'regenerating'` as an active mission.
 
 Unit 10 removes the generic authenticated insert/update policies from
 `daily_tasks`. Authenticated users retain owner-scoped reads, while mission
@@ -267,6 +328,12 @@ lifecycle writes occur only through the authenticated server action and the
 service-role-only functions above. A later reviewed task-workspace unit must add
 narrow mutation functions for editable fields rather than restoring broad row
 updates.
+
+Unit 11 adds `approve_mission_version`, `reject_mission_version`,
+`claim_mission_regeneration`, `finalize_mission_regeneration`, and
+`fail_mission_regeneration` service-role-only functions. These atomically manage
+state transitions and write sanitized audit events. Regeneration feedback is
+stored on the request row and never appears in audit logs or usage records.
 
 ### `github_webhook_deliveries`
 

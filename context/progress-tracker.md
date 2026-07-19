@@ -16,12 +16,14 @@ Update this file after every meaningful implementation change.
 - **Unit 09 implementation complete and verified.**
 - **Unit 10: AI Mission Generation is complete, manually verified with the real
   AI provider, and merged into main.**
-- **Current phase: Unit 11 planning.**
+- **Unit 11: Mission Review and Approval — implementation complete and automated
+  verification passing. Awaiting manual verification and merge.**
+- **Current phase: Unit 11 manual verification.**
 
 ## Current Goal
 
-- Write the mission review and approval specification. Do not implement Unit 11
-  until its specification is reviewed and merged.
+- Manually verify Unit 11 (review page, approval, rejection, regeneration, RLS,
+  accessibility) and merge once every gate passes.
 
 ## Completed
 
@@ -240,18 +242,45 @@ Update this file after every meaningful implementation change.
     configured Google fonts; the approved network-enabled rerun passed.
   - Unit 11, webhooks, commit creation, and pull requests were not implemented or
     changed by Unit 10.
+- **Unit 11 automated verification complete**:
+  - `mission_versions` and `mission_regeneration_requests` tables with RLS,
+    constraints, and service-role-only lifecycle functions added via migrations
+    `20240001000017` and `20240001000018`.
+  - `daily_tasks` extended with `current_mission_version_id`, `rejected_at`,
+    `review_operation_status`, and `regeneration_count` columns.
+  - Status constraint extended to include `approved`, `rejected`, and
+    `completed`; legacy `committed` rows normalized to `completed`.
+  - Active-mission index updated to include `approved` and `review_operation_status = 'regenerating'`.
+  - `approve_mission_version`, `reject_mission_version`,
+    `claim_mission_regeneration`, `finalize_mission_regeneration`, and
+    `fail_mission_regeneration` service-role-only functions created and applied.
+  - `claim_daily_mission_generation` updated to lock the profile row and treat
+    `review_operation_status = 'regenerating'` as an active mission.
+  - Existing valid missions backfilled into `mission_versions` with correct state mapping.
+  - `mission-review.types.ts`, `.schema.ts`, `.repository.ts`, `.service.ts`,
+    `.actions.ts` modules created in `src/features/missions/`.
+  - `mission-regeneration-prompt.ts` with versioned `mission-regeneration-v1` prompt.
+  - `src/app/(app)/tasks/[taskId]/review/page.tsx` and `loading.tsx` created.
+  - `src/app/(app)/tasks/[taskId]/page.tsx` approved placeholder created.
+  - `MissionReview.tsx` and `MissionDecisionControls.tsx` components created.
+  - Dashboard updated to handle new status values and link to review page.
+  - 94 new tests; all 328 tests pass; lint, typecheck, and production build pass.
 
 ## In Progress
 
-- **Unit 11 planning**: the mission review and approval specification is drafted
-  in `context/specs/11-mission-review-approval.md` and awaits review and merge.
-  No Unit 11 application code has begun.
+- **Unit 11: Mission Review and Approval** — implementation and automated
+  verification complete. 41 test files, 328 tests passing. Lint clean,
+  typecheck clean, production build passes. Migrations
+  `20240001000017_mission_review_approval.sql` and
+  `20240001000018_mission_review_approval_fix.sql` applied to the hosted
+  Supabase project. Database lint reports only pre-existing `warning extra`
+  items (no errors). Awaiting manual verification and merge.
 
 ## Next Up
 
-1. Review and merge the Unit 11 mission review and approval specification.
-2. Implement Unit 11 only after its specification is reviewed and merged.
-3. Do not begin Unit 12.
+1. Manual verification of Unit 11 against every item in Section 15 of the spec.
+2. Merge Unit 11 only after every automated and manual verification gate passes.
+3. Begin Unit 12 only after Unit 11 is merged.
 
 ## Open Questions
 
@@ -286,6 +315,27 @@ The MVP writes only below `blumo/**`, reducing the risk of damaging an existing 
 
 Pollinations is the first implementation, but feature code depends on an internal interface so the provider can be replaced later.
 
+### Unit 11 Mission Version Strategy
+
+`daily_tasks` remains the logical workflow record. A separate `mission_versions`
+table stores immutable snapshots of each valid AI output. The task points to
+exactly one current version via `current_mission_version_id`. Regeneration never
+overwrites an existing version — it creates the next sequential version and
+updates the pointer atomically only after full validation. This keeps the
+approval record attached to an exact immutable snapshot and preserves complete
+history. `mission_regeneration_requests` tracks the bounded provider interactions
+and their outcomes independently of the task row.
+
+### Regeneration Concurrency Boundary (Unit 11)
+
+The `claim_daily_mission_generation` function locks the profile row before
+evaluating the one-active-mission invariant. `claim_mission_regeneration` also
+locks the profile row. This serializes new daily generation and regeneration
+requests per user so neither can create a second active mission concurrently.
+`review_operation_status = 'regenerating'` on the task row is the cross-claim
+signal; the partial unique index on `(task_id) where status = 'processing'`
+enforces exactly one in-flight regeneration per task.
+
 ### Resend Subdomain
 
 Email is sent from addresses below `mail.arpankarki.com.np`. The domain is verified. Supabase SMTP and product API keys still need to be created and configured.
@@ -303,7 +353,12 @@ The setup callback at `/api/github/setup` receives an `installation_id` query pa
 Unit 10: AI Mission Generation is complete. It was manually verified with the
 real AI provider, including successful generation, persistence, and refreshed
 dashboard display, and was merged into main. Database migrations through Unit 10
-are applied to the hosted Supabase project. The current phase is Unit 11 planning;
-the mission review and approval specification is drafted and awaits review and
-merge. Unit 11 implementation begins only after that specification is reviewed
-and merged. Unit 12 has not begun.
+are applied to the hosted Supabase project.
+
+Unit 11: Mission Review and Approval implementation is complete and all automated
+verification passes. The review page, approval, rejection, and bounded
+regeneration are implemented with full ownership verification, atomic database
+functions, immutable version history, RLS, and sanitized audit events. 41 test
+files and 328 tests pass. Migrations 17 and 18 are applied to the hosted Supabase
+project with no errors. The implementation is pending manual verification and
+merge before Unit 12 begins.

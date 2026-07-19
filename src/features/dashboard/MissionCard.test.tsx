@@ -50,6 +50,7 @@ describe("MissionCard", () => {
           kind: "ready",
           taskId: "task-1",
           repositoryName: "learning-notes",
+          status: "generated",
           mission: {
             title: "Practice state transitions",
             description: "Explain how state changes through two observable interactions.",

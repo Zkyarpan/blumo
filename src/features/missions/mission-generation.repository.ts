@@ -124,6 +124,8 @@ export type TodayMissionState =
       taskId: string;
       repositoryName: string;
       mission: MissionOutput;
+      /** Unit 11: awaiting review decision */
+      status: "generated" | "approved" | "rejected" | "in_progress" | "completed";
     };
 
 const RETRYABLE_FAILURE_CODES = new Set([
@@ -164,6 +166,11 @@ function mapOwnedMissionRow(data: Record<string, unknown>): TodayMissionState {
     };
   }
 
+  const READY_STATUSES = new Set(["generated", "approved", "rejected", "in_progress", "completed"]);
+  const taskStatus = typeof data.status === "string" && READY_STATUSES.has(data.status)
+    ? (data.status as "generated" | "approved" | "rejected" | "in_progress" | "completed")
+    : "generated";
+
   const mission = missionOutputSchema.safeParse({
     title: data.title,
     description: data.summary,
@@ -193,6 +200,7 @@ function mapOwnedMissionRow(data: Record<string, unknown>): TodayMissionState {
     taskId,
     repositoryName,
     mission: mission.data,
+    status: taskStatus,
   };
 }
 
@@ -218,13 +226,13 @@ export async function getOwnedTodayMission(
 
   // A valid mission from an earlier date remains the user's one active mission.
   const { data: activeData, error: activeError } = await client
-    .from("daily_tasks")
-    .select(OWNED_MISSION_SELECT)
-    .eq("user_id", userId)
-    .in("status", ["generating", "generated", "in_progress", "ready", "committing"])
-    .order("scheduled_date", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+      .from("daily_tasks")
+      .select(OWNED_MISSION_SELECT)
+      .eq("user_id", userId)
+      .in("status", ["generating", "generated", "approved", "in_progress"])
+      .order("scheduled_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
   if (activeError) throw new Error("active_mission_query_failed");
   if (activeData) {

@@ -82,12 +82,22 @@ function MissionPrerequisite({
   );
 }
 
+const MISSION_STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
+  generated: { label: "Awaiting review", color: "var(--state-warning)", bg: "var(--state-warning-soft)" },
+  approved: { label: "Approved", color: "var(--state-success)", bg: "var(--state-success-soft)" },
+  rejected: { label: "Rejected", color: "var(--state-error)", bg: "var(--state-error-soft)" },
+  in_progress: { label: "In progress", color: "var(--accent-primary)", bg: "var(--accent-soft)" },
+  completed: { label: "Completed", color: "var(--state-success)", bg: "var(--state-success-soft)" },
+};
+
 function ReadyMission({
   state,
 }: {
   state: Extract<DashboardData["todayMission"], { kind: "ready" }>;
 }) {
   const { mission } = state;
+  const statusInfo = MISSION_STATUS_LABELS[state.status] ?? MISSION_STATUS_LABELS.generated;
+
   return (
     <div className="space-y-5">
       <p className="sr-only" role="status">
@@ -97,11 +107,11 @@ function ReadyMission({
         <div className="flex flex-wrap items-center gap-2">
           <Badge
             style={{
-              color: "var(--state-success)",
-              backgroundColor: "var(--state-success-soft)",
+              color: statusInfo.color,
+              backgroundColor: statusInfo.bg,
             }}
           >
-            <Check aria-hidden="true" /> Ready
+            <Check aria-hidden="true" /> {statusInfo.label}
           </Badge>
           <Badge variant="outline">{mission.difficulty}</Badge>
         </div>
@@ -157,6 +167,29 @@ function ReadyMission({
           </p>
         </div>
       </div>
+
+      {(state.status === "generated" || state.status === "rejected") && (
+        <div>
+          <Link
+            href={`/tasks/${state.taskId}/review`}
+            className="inline-flex items-center text-sm font-medium underline underline-offset-4"
+            style={{ color: "var(--accent-strong)" }}
+          >
+            {state.status === "generated" ? "Review and approve mission →" : "View rejected mission →"}
+          </Link>
+        </div>
+      )}
+      {state.status === "approved" && (
+        <div>
+          <Link
+            href={`/tasks/${state.taskId}`}
+            className="inline-flex items-center text-sm font-medium underline underline-offset-4"
+            style={{ color: "var(--accent-strong)" }}
+          >
+            View approved mission →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

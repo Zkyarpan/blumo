@@ -65,7 +65,7 @@ export interface SavedMission {
   suggestedCommitMessage: string;
   suggestedBranch: string;
   learningOutcome: string;
-  status: "generated" | "in_progress" | "ready" | "committing" | "committed";
+  status: "generated" | "approved" | "rejected" | "in_progress" | "completed";
   generationAttempts: number;
   repositoryName: string;
 }

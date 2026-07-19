@@ -91,13 +91,13 @@ export async function getDashboardData(
       activeGoal = goalData;
     }
 
-    // 3. Count committed tasks (soft failure — default 0)
+    // 3. Count completed tasks (soft failure — default 0)
     let completedTaskCount = 0;
     const { count, error: countError } = await supabase
       .from("daily_tasks")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
-      .eq("status", "committed");
+      .eq("status", "completed");
 
     if (!countError && typeof count === "number") {
       completedTaskCount = count;
