@@ -1,17 +1,20 @@
 import "server-only";
 
+import { serverEnv } from "@/lib/env/server";
+
 /**
- * Builds the GitHub App installation URL for a given App slug.
+ * Builds the GitHub App installation URL.
  *
- * Format:  https://github.com/apps/{slug}/installations/new
+ * When the user clicks "Connect GitHub", they are redirected to this URL.
+ * GitHub then redirects back to the setup callback after installation.
  *
- * The user arrives here to choose which repositories to grant access to.
- * GitHub redirects back to the configured setup URL with installation_id
- * after the user confirms.
+ * Server-only — the App slug is a non-secret but must only be composed
+ * server-side so it can never be tampered with.
  */
-export function buildInstallationUrl(appSlug: string): string {
-  if (!appSlug || appSlug.trim() === "") {
-    throw new Error("GITHUB_APP_SLUG is required to build an installation URL");
-  }
-  return `https://github.com/apps/${encodeURIComponent(appSlug.trim())}/installations/new`;
+export function getInstallationUrl(): string {
+  const slug = serverEnv.GITHUB_APP_SLUG;
+
+  // GitHub installation page format: https://github.com/apps/<slug>/installations/new
+  // The redirect_url is optional; GitHub already knows the Setup URL from App config.
+  return `https://github.com/apps/${slug}/installations/new`;
 }

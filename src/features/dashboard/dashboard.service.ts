@@ -22,6 +22,12 @@ export type DashboardData = {
     created_at: string;
   } | null;
   completedTaskCount: number;
+  hasActiveInstallation: boolean;
+  selectedRepository: {
+    id: string;
+    full_name: string;
+    default_branch: string;
+  } | null;
 };
 
 /**
@@ -80,7 +86,46 @@ export async function getDashboardData(
       completedTaskCount = count;
     }
 
-    return { profile, activeGoal, completedTaskCount };
+    // 4. Fetch the active GitHub installation (soft failure — disconnected).
+    let activeInstallationId: string | null = null;
+    const { data: installationData, error: installationError } = await supabase
+      .from("github_installations")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+
+    if (!installationError && installationData) {
+      activeInstallationId = installationData.id;
+    }
+
+    // 5. Fetch the one selected active repository for that installation.
+    let selectedRepository: DashboardData["selectedRepository"] = null;
+
+    if (activeInstallationId) {
+      const { data: repositoryData, error: repositoryError } = await supabase
+        .from("repositories")
+        .select("id, full_name, default_branch")
+        .eq("user_id", userId)
+        .eq("installation_id", activeInstallationId)
+        .eq("is_selected", true)
+        .eq("access_status", "active")
+        .limit(1)
+        .maybeSingle();
+
+      if (!repositoryError && repositoryData) {
+        selectedRepository = repositoryData;
+      }
+    }
+
+    return {
+      profile,
+      activeGoal,
+      completedTaskCount,
+      hasActiveInstallation: activeInstallationId !== null,
+      selectedRepository,
+    };
   } catch {
     return null;
   }

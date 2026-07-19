@@ -7,7 +7,8 @@ import { z } from "zod";
  *
  * Unit additions:
  *   Unit 02: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY
- *   Unit 06: GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_WEBHOOK_SECRET
+ *   Unit 06: GITHUB_APP_ID, GITHUB_APP_SLUG, GITHUB_APP_PRIVATE_KEY, GITHUB_WEBHOOK_SECRET,
+ *            GITHUB_APP_CLIENT_ID, GITHUB_APP_CLIENT_SECRET
  *   Unit 10: AI provider key
  *   Unit 16: RESEND_API_KEY, RESEND_SMTP_*
  */
@@ -38,10 +39,9 @@ const serverEnvSchema = z.object({
   GITHUB_APP_PRIVATE_KEY: z
     .string()
     .min(1, "GITHUB_APP_PRIVATE_KEY is required"),
-  // Webhook secret is required in production (Unit 09); allow empty locally
-  // until the operator sets a value, so startup is not blocked during dev.
+  // Webhook secret becomes required in Unit 09; allow empty locally until then.
   GITHUB_WEBHOOK_SECRET: z.string().optional(),
-  // Optional until Unit 07
+  // Optional until Unit 07 OAuth flow
   GITHUB_APP_CLIENT_ID: z.string().optional(),
   GITHUB_APP_CLIENT_SECRET: z.string().optional(),
 });

@@ -1,31 +1,37 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
+import { vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+vi.mock("@/lib/env/server", () => ({
+  serverEnv: {
+    GITHUB_APP_SLUG: "blumo-development",
+  },
+}));
 
-import { buildInstallationUrl } from "./installation-url";
-
-describe("buildInstallationUrl", () => {
-  it("returns the correct URL for a valid slug", () => {
-    expect(buildInstallationUrl("blumo-development")).toBe(
-      "https://github.com/apps/blumo-development/installations/new"
-    );
+describe("getInstallationUrl", () => {
+  it("returns a URL containing the app slug", async () => {
+    const { getInstallationUrl } = await import("./installation-url");
+    const url = getInstallationUrl();
+    expect(url).toContain("blumo-development");
+    expect(url).toContain("github.com/apps/");
   });
 
-  it("strips leading and trailing whitespace from the slug", () => {
-    expect(buildInstallationUrl("  blumo-development  ")).toBe(
-      "https://github.com/apps/blumo-development/installations/new"
-    );
+  it("returns a URL ending with /installations/new", async () => {
+    const { getInstallationUrl } = await import("./installation-url");
+    const url = getInstallationUrl();
+    expect(url).toMatch(/\/installations\/new$/);
   });
 
-  it("throws with a descriptive message for an empty string slug", () => {
-    expect(() => buildInstallationUrl("")).toThrow(
-      "GITHUB_APP_SLUG is required to build an installation URL"
-    );
+  it("returns a valid https URL", async () => {
+    const { getInstallationUrl } = await import("./installation-url");
+    const url = getInstallationUrl();
+    expect(url).toMatch(/^https:\/\//);
   });
 
-  it("URL-encodes a slug that contains characters needing encoding", () => {
-    expect(buildInstallationUrl("blumo app")).toBe(
-      "https://github.com/apps/blumo%20app/installations/new"
-    );
+  it("never exposes GITHUB_APP_PRIVATE_KEY in the URL", async () => {
+    const { getInstallationUrl } = await import("./installation-url");
+    const url = getInstallationUrl();
+    expect(url).not.toContain("PRIVATE_KEY");
+    expect(url).not.toContain("BEGIN RSA");
   });
 });

@@ -1,31 +1,92 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { ConnectGitHubButton } from "./ConnectGitHubButton";
+import { ConnectGitHubButton } from "@/features/github/ConnectGitHubButton";
 
 interface ConnectGitHubPageProps {
   installationUrl: string;
+  error?: string;
 }
 
-export function ConnectGitHubPage({ installationUrl }: ConnectGitHubPageProps) {
+const ERROR_MESSAGES: Record<string, string> = {
+  cancelled:
+    "Installation was cancelled. You can try again when you're ready.",
+  missing_installation:
+    "Something went wrong with the GitHub redirect. Please try again.",
+  invalid_installation:
+    "Blumo could not verify that installation. Please install the App again.",
+  github_unavailable:
+    "GitHub is temporarily unavailable. Please try again in a moment.",
+  ownership_mismatch:
+    "This installation belongs to a different GitHub account. Sign in with the correct account and try again.",
+  org_not_supported:
+    "Organisation installations are not yet supported. Please install the App on a personal account.",
+  installation_conflict:
+    "This installation is already connected to another Blumo account. Contact support if you believe this is an error.",
+  installation_suspended:
+    "Your GitHub App installation is suspended. Restore it in GitHub before synchronizing repositories.",
+  server_error: "Something went wrong on our end. Please try again.",
+};
+
+function getErrorMessage(code: string | undefined): string | null {
+  if (!code) return null;
+  return ERROR_MESSAGES[code] ?? "Something went wrong. Please try again.";
+}
+
+/**
+ * Server Component for the GitHub connection page.
+ * Displays permissions explanation, privacy note, and the connect button.
+ * Shows an error banner if an error query parameter is present.
+ */
+export function ConnectGitHubPage({
+  installationUrl,
+  error,
+}: ConnectGitHubPageProps) {
+  const errorMessage = getErrorMessage(error);
+  const isSuspended = error === "installation_suspended";
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1
-          className="text-2xl md:text-3xl font-semibold mb-2"
-          style={{ color: "var(--text-primary)" }}
+    <div className="max-w-lg mx-auto space-y-4">
+      {errorMessage && (
+        <div
+          className="rounded-lg border p-4 text-sm"
+          role="alert"
+          style={{
+            backgroundColor: isSuspended
+              ? "var(--state-warning-soft)"
+              : "var(--state-error-soft)",
+            borderColor: isSuspended
+              ? "var(--state-warning)"
+              : "var(--state-error)",
+            color: isSuspended
+              ? "var(--state-warning)"
+              : "var(--state-error)",
+          }}
         >
-          Connect your GitHub repository
-        </h1>
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-          Blumo needs repository access to write approved learning notes and
-          coding challenges on your behalf.
-        </p>
-      </div>
+          <p className="font-medium mb-1">
+            {isSuspended ? "GitHub installation suspended" : "Could not connect GitHub"}
+          </p>
+          <p>{errorMessage}</p>
+          {isSuspended ? (
+            <a
+              href="https://github.com/settings/installations"
+              className="mt-2 inline-block text-sm font-medium underline"
+            >
+              Open GitHub App settings
+            </a>
+          ) : (
+            <a
+              href="/github/connect"
+              className="mt-2 inline-block text-sm font-medium underline"
+            >
+              Try again
+            </a>
+          )}
+        </div>
+      )}
 
       <Card
         className="rounded-xl border"
         style={{
-          backgroundColor: "var(--bg-subtle)",
+          backgroundColor: "var(--bg-surface)",
           borderColor: "var(--border-default)",
         }}
       >
@@ -34,79 +95,44 @@ export function ConnectGitHubPage({ installationUrl }: ConnectGitHubPageProps) {
             className="text-base font-semibold"
             style={{ color: "var(--text-primary)" }}
           >
-            What Blumo can access
+            Connect your GitHub account
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <ul className="space-y-3">
-            <li>
-              <p
-                className="text-sm font-medium"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Read and write files in{" "}
-                <code className="text-xs font-mono">blumo/</code>
-              </p>
-              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                Blumo writes approved learning notes and coding challenges only
-                inside the <code className="text-xs font-mono">blumo/</code>{" "}
-                directory.
-              </p>
-            </li>
-            <li>
-              <p
-                className="text-sm font-medium"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Read repository metadata
-              </p>
-              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                Required by GitHub for all Apps.
-              </p>
-            </li>
-          </ul>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+            Blumo uses a GitHub App to access only the repositories you choose.
+            You&apos;ll select exactly which repositories to allow before
+            anything is connected.
+          </p>
 
-          <Separator />
-
-          <div>
+          <div className="space-y-2">
             <p
-              className="text-sm font-medium mb-2"
-              style={{ color: "var(--text-primary)" }}
+              className="text-xs font-medium uppercase tracking-wide"
+              style={{ color: "var(--text-muted)" }}
             >
-              What Blumo cannot access
+              Requested permissions
             </p>
-            <ul className="space-y-1">
-              {[
-                "Issues and pull requests",
-                "Code history outside blumo/",
-                "Organisation settings",
-                "Secrets and Actions workflows",
-              ].map((item) => (
-                <li
-                  key={item}
-                  className="text-sm"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  — {item}
-                </li>
-              ))}
+            <ul className="space-y-1 text-sm" style={{ color: "var(--text-secondary)" }}>
+              <li>✓ Read repository metadata</li>
+              <li>✓ Read and write repository contents (inside blumo/ only)</li>
             </ul>
           </div>
 
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-            You choose which repositories to allow. You can remove access at any
-            time from your GitHub settings.
+          <p
+            className="text-xs rounded-lg p-3"
+            style={{
+              backgroundColor: "var(--bg-subtle)",
+              color: "var(--text-muted)",
+            }}
+          >
+            Blumo never reads your source code or writes outside the{" "}
+            <code>blumo/</code> directory. You approve every contribution before
+            it is committed.
           </p>
+
+          <ConnectGitHubButton installationUrl={installationUrl} />
         </CardContent>
       </Card>
-
-      <ConnectGitHubButton installationUrl={installationUrl} />
-
-      <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-        Blumo never requests your GitHub password or a personal access token.
-        Repository connection uses a GitHub App with selected-repository access
-        only.
-      </p>
     </div>
   );
 }

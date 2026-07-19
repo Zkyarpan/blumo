@@ -8,10 +8,12 @@ import type { ActionResult } from "@/types/action-result";
  * Persists the onboarding form data for the given authenticated user.
  *
  * Write order:
- *   1. UPDATE profiles — experience_level, timezone
+ *   1. UPSERT profiles — GitHub fields + experience_level + timezone
  *   2. INSERT goals    — active goal with user's preferences
  *   3. UPDATE profiles — set onboarding_completed_at (sentinel, last)
  *
+ * Step 1 uses upsert so that if the handle_new_user() trigger was delayed
+ * or failed, the profiles row is created here with all GitHub metadata.
  * The sentinel is set last so a partial failure leaves the user able to retry.
  * If an active goal already exists from a previous partial attempt, we detect
  * it and complete the sentinel rather than inserting a duplicate.
@@ -69,14 +71,35 @@ export async function saveOnboarding(
     return { ok: true, data: null };
   }
 
-  // Step 1: Update profile preferences.
+  // Step 1: Upsert profile with GitHub metadata + preferences.
+  // Pulls GitHub fields from the auth session so that if the
+  // handle_new_user() trigger failed, the row is fully populated here.
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  const meta = authUser?.user_metadata ?? {};
+
   const { error: profileError } = await supabase
     .from("profiles")
-    .update({
-      experience_level: input.experience_level,
-      timezone: input.timezone,
-    })
-    .eq("id", userId);
+    .upsert(
+      {
+        id: userId,
+        // GitHub identity — only set when not already populated
+        github_user_id: meta.provider_id
+          ? parseInt(meta.provider_id as string, 10)
+          : undefined,
+        github_username: (meta.user_name as string | undefined) ?? undefined,
+        display_name:
+          ((meta.full_name as string | undefined) ||
+            (meta.user_name as string | undefined)) ??
+          undefined,
+        avatar_url: (meta.avatar_url as string | undefined) ?? undefined,
+        // User preferences from the form
+        experience_level: input.experience_level,
+        timezone: input.timezone,
+      },
+      { onConflict: "id" }
+    );
 
   if (profileError) {
     return {

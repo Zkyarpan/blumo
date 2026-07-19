@@ -38,7 +38,13 @@ interface DashboardShellProps {
  * Server Component — composes all dashboard cards from pre-fetched data.
  */
 export function DashboardShell({ data }: DashboardShellProps) {
-  const { profile, activeGoal, completedTaskCount } = data;
+  const {
+    profile,
+    activeGoal,
+    completedTaskCount,
+    hasActiveInstallation,
+    selectedRepository,
+  } = data;
 
   const displayName =
     profile.display_name ?? profile.github_username ?? "Developer";
@@ -70,7 +76,10 @@ export function DashboardShell({ data }: DashboardShellProps) {
           <MissionCard />
         </div>
         <div className="md:col-span-1">
-          <GitHubConnectionCard />
+          <GitHubConnectionCard
+            hasActiveInstallation={hasActiveInstallation}
+            selectedRepository={selectedRepository}
+          />
         </div>
       </div>
 

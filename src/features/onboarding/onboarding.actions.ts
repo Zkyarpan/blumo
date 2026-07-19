@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { onboardingSchema } from "./onboarding.schema";
 import { saveOnboarding } from "./onboarding.service";
 import { getUser } from "@/features/auth/get-user";
@@ -10,8 +9,12 @@ import type { ActionResult } from "@/types/action-result";
  * Server Action: validates and persists onboarding form data.
  *
  * Called via useActionState from OnboardingForm.
- * On success, redirects to /dashboard.
+ * On success, returns {ok: true} — the client handles navigation to /dashboard.
  * On failure, returns a normalized ActionResult the client can render.
+ *
+ * Note: redirect() is NOT called here because useActionState + startTransition
+ * does not propagate Next.js redirect throws to the browser in all cases.
+ * Client-side router.push() is used instead (see OnboardingForm).
  */
 export async function submitOnboarding(
   _prev: ActionResult<null>,
@@ -52,5 +55,5 @@ export async function submitOnboarding(
   const result = await saveOnboarding(user.id, parsed.data);
   if (!result.ok) return result;
 
-  redirect("/dashboard");
+  return { ok: true, data: null };
 }

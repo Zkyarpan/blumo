@@ -1,33 +1,33 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { GitBranch, ExternalLink } from "lucide-react";
+import { GitHubIcon } from "@/components/shared/GitHubIcon";
 
 interface ConnectGitHubButtonProps {
   installationUrl: string;
 }
 
-export function ConnectGitHubButton({
-  installationUrl,
-}: ConnectGitHubButtonProps) {
-  const [loading, setLoading] = useState(false);
-
-  function handleConnect() {
-    setLoading(true);
+/**
+ * Client component that navigates the browser to the GitHub App installation
+ * page. Uses window.location.href so the full page is replaced, allowing
+ * GitHub to redirect back to the setup callback after install.
+ */
+export function ConnectGitHubButton({ installationUrl }: ConnectGitHubButtonProps) {
+  function handleClick() {
     window.location.href = installationUrl;
   }
 
   return (
-    <Button
-      onClick={handleConnect}
-      disabled={loading}
-      aria-disabled={loading}
-      className="gap-2"
+    <button
+      type="button"
+      onClick={handleClick}
+      className="inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors w-full"
+      style={{
+        backgroundColor: "var(--text-primary)",
+        color: "var(--bg-surface)",
+      }}
     >
-      <GitBranch size={16} aria-hidden="true" />
-      {loading ? "Redirecting to GitHub…" : "Connect GitHub"}
-      {!loading && <ExternalLink size={14} aria-hidden="true" />}
-    </Button>
+      <GitHubIcon className="size-4" />
+      Connect GitHub
+    </button>
   );
 }

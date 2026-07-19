@@ -25,29 +25,31 @@ const USER_ID = "user-abc-123";
  * Build a mock Supabase client with chainable query builder behaviour.
  * Each call to `.from()` → `.select()` → `.eq()` → `.maybeSingle()` or
  * `.single()` resolves to the provided value.
- * Similarly `.from()` → `.update()` → `.eq()` and `.from()` → `.insert()`
- * resolve to the provided value.
+ * Similarly `.from()` → `.upsert()`, `.from()` → `.update()` → `.eq()`
+ * and `.from()` → `.insert()` resolve to the provided value.
  */
 function buildMockClient(overrides: {
   existingGoal?: { data: { id: string } | null; error: null };
   profile?: { data: { onboarding_completed_at: string | null } | null; error: null };
-  profileUpdate?: { error: null | { message: string } };
+  profileUpsert?: { error: null | { message: string } };
   goalInsert?: { error: null | { message: string } };
   completeSentinel?: { error: null | { message: string } };
 }) {
   const {
     existingGoal = { data: null, error: null },
     profile = { data: { onboarding_completed_at: null }, error: null },
-    profileUpdate = { error: null },
+    profileUpsert = { error: null },
     goalInsert = { error: null },
     completeSentinel = { error: null },
   } = overrides;
 
-  // Track how many times .update() has been called so we return the
-  // correct mock for "update profile prefs" vs "complete sentinel"
-  let updateCallCount = 0;
-
   return {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: { user_metadata: {} } },
+        error: null,
+      }),
+    },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
@@ -58,14 +60,11 @@ function buildMockClient(overrides: {
           single: vi.fn().mockResolvedValue(profile),
         }),
       }),
+      // Step 1: profile upsert
+      upsert: vi.fn().mockResolvedValue(profileUpsert),
+      // Step 3: sentinel update
       update: vi.fn().mockReturnValue({
-        eq: vi.fn().mockImplementation(() => {
-          updateCallCount += 1;
-          // First update = profile prefs; second update = sentinel
-          return Promise.resolve(
-            updateCallCount === 1 ? profileUpdate : completeSentinel
-          );
-        }),
+        eq: vi.fn().mockResolvedValue(completeSentinel),
       }),
       insert: vi.fn().mockResolvedValue(goalInsert),
     }),
@@ -89,10 +88,10 @@ describe("saveOnboarding service", () => {
     expect(result).toEqual({ ok: true, data: null });
   });
 
-  it("2. returns ok: false with DB_ERROR when profile UPDATE fails", async () => {
+  it("2. returns ok: false with DB_ERROR when profile upsert fails", async () => {
     mockedCreateClient.mockResolvedValue(
       buildMockClient({
-        profileUpdate: { error: { message: "db error" } },
+        profileUpsert: { error: { message: "db error" } },
       }) as never
     );
 

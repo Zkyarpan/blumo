@@ -25,12 +25,13 @@ export default async function AppLayout({
 
   return (
     <div
-      className="flex min-h-screen flex-col"
+      className="min-h-screen"
       style={{ backgroundColor: "var(--bg-base)" }}
     >
       <AppHeader user={headerUser} />
       <AppSidebar />
-      <main className="flex-1 lg:pl-56">{children}</main>
+      {/* pt-14 = header height (h-14). lg:pl-56 = sidebar width. */}
+      <main className="pt-14 lg:pl-56">{children}</main>
     </div>
   );
 }
