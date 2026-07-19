@@ -8,11 +8,12 @@ Update this file after every meaningful implementation change.
 - Unit 01: Project Foundation — complete.
 - Unit 02: Supabase Auth — complete.
 - Unit 03: Core Database Schema and RLS — complete.
-- **Unit 04: Onboarding — complete.**
+- Unit 04: Authenticated Onboarding — complete and merged into main.
+- **Unit 05: Dashboard Shell — planning.**
 
 ## Current Goal
 
-- Begin Unit 05: Dashboard Shell.
+- Write and review the Unit 05 Dashboard Shell specification.
 
 ## Completed
 
@@ -93,11 +94,11 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-None.
+- Unit 05 specification: `context/specs/05-dashboard-shell.md`.
 
 ## Next Up
 
-1. Unit 05: Dashboard Shell — responsive navigation, goal summary, GitHub connection state.
+1. Implement Unit 05 after the specification is reviewed and merged.
 
 ## Open Questions
 
@@ -143,4 +144,4 @@ The onboarding Server Action writes to `profiles` (UPDATE) and `goals` (INSERT) 
 
 ## Session Notes
 
-Database migrations have been applied to the hosted Supabase project. The schema is live. Unit 04 planning is underway.
+Database migrations have been applied to the hosted Supabase project. The schema is live. Unit 04 was verified (`npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` all pass) and merged into main. Unit 05 specification is being drafted.
