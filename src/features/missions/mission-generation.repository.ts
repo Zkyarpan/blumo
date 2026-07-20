@@ -163,6 +163,58 @@ function mapOwnedMissionRow(data: Record<string, unknown>): TodayMissionState {
         RETRYABLE_FAILURE_CODES.has(errorCode),
     };
   }
+  // Rejected mission: show as review-pending so dashboard can link to review
+  if (data.status === "rejected") {
+    const mission = missionOutputSchema.safeParse({
+      title: data.title,
+      description: data.summary,
+      estimated_minutes: data.estimated_minutes,
+      difficulty: data.difficulty,
+      acceptance_checklist: data.acceptance_checklist,
+      suggested_commit_message: data.suggested_commit_message,
+      suggested_branch: data.suggested_branch,
+      learning_outcome: data.learning_outcome,
+    });
+    if (!mission.success) return { kind: "invalid" };
+    const repositoryRelation = data.repositories as
+      | { name?: unknown }
+      | { name?: unknown }[]
+      | null;
+    const repository = Array.isArray(repositoryRelation)
+      ? repositoryRelation[0]
+      : repositoryRelation;
+    const repositoryName =
+      repository && typeof repository.name === "string"
+        ? repository.name
+        : "Selected repository";
+    return { kind: "ready", taskId, repositoryName, mission: mission.data };
+  }
+  // Approved mission: show as approved state on dashboard
+  if (data.status === "approved") {
+    const mission = missionOutputSchema.safeParse({
+      title: data.title,
+      description: data.summary,
+      estimated_minutes: data.estimated_minutes,
+      difficulty: data.difficulty,
+      acceptance_checklist: data.acceptance_checklist,
+      suggested_commit_message: data.suggested_commit_message,
+      suggested_branch: data.suggested_branch,
+      learning_outcome: data.learning_outcome,
+    });
+    if (!mission.success) return { kind: "invalid" };
+    const repositoryRelation = data.repositories as
+      | { name?: unknown }
+      | { name?: unknown }[]
+      | null;
+    const repository = Array.isArray(repositoryRelation)
+      ? repositoryRelation[0]
+      : repositoryRelation;
+    const repositoryName =
+      repository && typeof repository.name === "string"
+        ? repository.name
+        : "Selected repository";
+    return { kind: "ready", taskId, repositoryName, mission: mission.data };
+  }
 
   const mission = missionOutputSchema.safeParse({
     title: data.title,
@@ -197,7 +249,7 @@ function mapOwnedMissionRow(data: Record<string, unknown>): TodayMissionState {
 }
 
 const OWNED_MISSION_SELECT =
-  "id, scheduled_date, title, summary, estimated_minutes, difficulty, acceptance_checklist, suggested_commit_message, suggested_branch, learning_outcome, status, provider_generation_attempts, generation_error_code, repositories(name)";
+  "id, scheduled_date, title, summary, estimated_minutes, difficulty, acceptance_checklist, suggested_commit_message, suggested_branch, learning_outcome, status, review_operation_status, current_mission_version_id, provider_generation_attempts, generation_error_code, repositories(name)";
 
 export async function getOwnedTodayMission(
   userId: string,
@@ -221,7 +273,7 @@ export async function getOwnedTodayMission(
     .from("daily_tasks")
     .select(OWNED_MISSION_SELECT)
     .eq("user_id", userId)
-    .in("status", ["generating", "generated", "in_progress", "ready", "committing"])
+    .in("status", ["generating", "generated", "approved", "in_progress"])
     .order("scheduled_date", { ascending: false })
     .limit(1)
     .maybeSingle();

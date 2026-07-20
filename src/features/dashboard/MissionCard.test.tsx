@@ -40,7 +40,7 @@ describe("MissionCard", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders every required saved mission field as escaped React text", () => {
+  it("renders a ready mission with review link and key fields", () => {
     render(
       <MissionCard
         activeGoal={GOAL}
@@ -71,11 +71,13 @@ describe("MissionCard", () => {
     expect(screen.getByText(/Explain how state changes/)).toBeInTheDocument();
     expect(screen.getByText("30 minutes")).toBeInTheDocument();
     expect(screen.getByText("beginner")).toBeInTheDocument();
-    expect(screen.getByText("Describe two observable state transitions")).toBeInTheDocument();
-    expect(screen.getByText("Document state transitions")).toBeInTheDocument();
     expect(screen.getByText("main")).toBeInTheDocument();
-    expect(screen.getByText(/Explain predictable state changes/)).toBeInTheDocument();
     expect(screen.getByText("learning-notes")).toBeInTheDocument();
+    // Dashboard now links to review page instead of showing full details
+    expect(screen.getByRole("link", { name: /Review mission/i })).toHaveAttribute(
+      "href",
+      "/tasks/task-1/review"
+    );
   });
 
   it.each([

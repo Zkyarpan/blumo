@@ -125,13 +125,17 @@ Constraints:
 | `difficulty` | text | `beginner`, `intermediate`, or `advanced`; nullable for legacy rows |
 | `learning_outcome` | text | Validated mission learning outcome; nullable for legacy rows |
 | `user_commit_message` | text | User-edited final message |
-| `status` | text | `generating`, `generated`, `in_progress`, `ready`, `committing`, `committed`, `failed`, `archived` |
+| `status` | text | `generating`, `generated`, `approved`, `rejected`, `in_progress`, `completed`, `failed`, `archived` |
 | `ai_provider` | text | Provider identifier |
 | `ai_model` | text | Model identifier where available |
 | `prompt_version` | text | Versioned prompt identifier; nullable for legacy rows |
 | `generation_error_code` | text | Nullable allowlisted internal code; never a raw provider error |
 | `generation_attempts` | integer | Monotonic claim version, default 1; never reset or reused |
 | `provider_generation_attempts` | integer | Failed claim versions that reached the provider; `0` to `3` |
+| `current_mission_version_id` | uuid | FK to `mission_versions.id`; nullable during failed/generating |
+| `rejected_at` | timestamptz | Nullable; timestamp for the current rejected state |
+| `review_operation_status` | text | `idle` or `regenerating`; default `idle` |
+| `regeneration_count` | smallint | Default `0`; between `0` and `2` |
 | `approved_at` | timestamptz | Nullable |
 | `completed_at` | timestamptz | Nullable |
 | `created_at` | timestamptz | Default now |
@@ -141,7 +145,8 @@ Constraints:
 
 - Unique `user_id + scheduled_date`; one task row per user-local day.
 - A user has at most one active mission across `generating`, `generated`,
-  `in_progress`, `ready`, and `committing`; completed, failed, and archived rows
+  `approved`, and `in_progress`, or when `review_operation_status = regenerating`;
+  completed, failed, rejected (without active regeneration), and archived rows
   remain as history and do not block a later mission.
 - A failed generation is retried within the same row, up to three failed claims
   that reached the provider.
@@ -219,7 +224,7 @@ Constraints:
 | `task_id` | uuid | Nullable |
 | `provider` | text | Provider |
 | `model` | text | Model |
-| `operation` | text | `task_generation`, `review`, `weekly_summary` |
+| `operation` | text | `task_generation`, `mission_regeneration`, `review`, `weekly_summary` |
 | `input_units` | integer | Nullable provider measurement |
 | `output_units` | integer | Nullable provider measurement |
 | `estimated_cost_minor` | integer | Nullable internal estimate |
@@ -264,9 +269,90 @@ earlier local date, instead of creating another active mission.
 Unit 10 removes the generic authenticated insert/update policies from
 `daily_tasks`. Authenticated users retain owner-scoped reads, while mission
 lifecycle writes occur only through the authenticated server action and the
-service-role-only functions above. A later reviewed task-workspace unit must add
-narrow mutation functions for editable fields rather than restoring broad row
-updates.
+service-role-only functions above.
+
+### Mission Review Lifecycle Functions (Unit 11)
+
+Unit 11 adds five additional service-role-only, fixed-search-path functions:
+
+- `approve_mission_version(user_id, task_id, version_id)` — atomically approves
+  the exact current version, rechecks repository/installation ownership, sets
+  `approved_at` on both task and version, writes a sanitized `mission_approved`
+  audit event, and is idempotent for the same version.
+- `reject_mission_version(user_id, task_id, version_id, reason)` — atomically
+  rejects, stores the nullable validated reason only on the version row, sets
+  `rejected_at` on both, and writes a sanitized `mission_rejected` audit event.
+- `claim_mission_regeneration(user_id, task_id, source_version_id, feedback)` —
+  enforces ownership, state, repository, and usage-limit invariants, sets
+  `review_operation_status = regenerating`, inserts a `mission_regeneration_requests`
+  row, and writes a `mission_regeneration_started` audit event.
+- `finalize_mission_regeneration(...)` — validates the new mission, inserts the
+  next immutable `mission_versions` row, updates the task snapshot and pointer
+  atomically, increments `regeneration_count`, marks the request `succeeded`, and
+  writes a `mission_regeneration_succeeded` audit event.
+- `fail_mission_regeneration(...)` — clears `review_operation_status`, marks the
+  request `failed`, inserts usage records, and writes a `mission_regeneration_failed`
+  audit event.
+
+The updated `claim_daily_mission_generation` function also treats
+`review_operation_status = regenerating` as an active mission and uses a
+profile row lock for per-user concurrency safety.
+
+### `mission_versions`
+
+Immutable AI mission snapshots. Each approved or rejected decision is permanently
+attached to an exact version row.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `task_id` | uuid | References `daily_tasks.id` |
+| `user_id` | uuid | References `profiles.id` |
+| `version_number` | integer | Positive, sequential per task |
+| `status` | text | `generated`, `approved`, or `rejected` |
+| `title` | text | Exact validated snapshot |
+| `description` | text | Exact validated snapshot |
+| `estimated_minutes` | integer | Unit 10 allowed values |
+| `difficulty` | text | Unit 10 allowed values |
+| `acceptance_checklist` | jsonb | Validated 2–6 string array |
+| `suggested_commit_message` | text | Exact validated snapshot |
+| `suggested_branch` | text | Exact verified default-branch suggestion |
+| `learning_outcome` | text | Exact validated snapshot |
+| `ai_provider` | text | Server-owned safe identifier |
+| `ai_model` | text | Nullable server-owned safe identifier |
+| `prompt_version` | text | Fixed prompt version used for this snapshot |
+| `generation_claim_version` | integer | Monotonic source claim/reference |
+| `approved_at` | timestamptz | Nullable |
+| `rejected_at` | timestamptz | Nullable |
+| `rejection_reason` | text | Nullable validated user text, maximum 500 characters |
+| `created_at` | timestamptz | Default now; generation timestamp |
+
+Constraints: unique `(task_id, version_number)`; status/timestamp consistency
+enforced; no browser mutation policy.
+
+### `mission_regeneration_requests`
+
+Tracks bounded regeneration attempts per rejected source version.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `task_id` | uuid | Owned logical mission |
+| `user_id` | uuid | Authenticated owner |
+| `source_version_id` | uuid | Rejected current source version |
+| `result_version_id` | uuid | Nullable successor version |
+| `status` | text | `processing`, `succeeded`, or `failed` |
+| `feedback` | text | Required validated text, 10–500 characters |
+| `claim_version` | integer | Positive monotonic stale-response guard |
+| `provider_attempts` | smallint | Provider-backed failed claims; `0`–`3` |
+| `error_code` | text | Nullable allowlisted fixed code only |
+| `claimed_at` | timestamptz | Current claim time |
+| `completed_at` | timestamptz | Nullable |
+| `created_at` | timestamptz | Default now |
+| `updated_at` | timestamptz | Default now |
+
+Partial unique index: one `processing` request per task. Unique constraint:
+one successful successor per source version.
 
 ### `github_webhook_deliveries`
 

@@ -163,6 +163,17 @@ repository-specific facts, includes destructive Git/shell/data operations,
 requests secrets, targets another repository or service, or attempts to bypass
 ownership and approval controls. Mission output is rendered only as escaped text
 and is never executed.
+
+Unit 11 adds mission review, approval, rejection, and bounded regeneration.
+Approval and rejection are fresh server-validated mutations, never client booleans.
+Regeneration feedback is validated server-side with the same safety boundary as
+mission output; it cannot override schema, repository, safety, ownership, or
+approval rules, and is never logged or included in audit metadata. Repository and
+installation state is rechecked inside every approval and regeneration transaction.
+Approved, in-progress, and completed missions can never be overwritten or
+regenerated. Rejected versions and AI usage are append-only product history.
+All lifecycle writes use service-role-only `security definer` functions. No GitHub
+API call is made in Unit 11 and no installation token is generated or persisted.
 Pollinations uses its documented `sexual,violence` content-safety categories.
 The `privacy,secrets,shield` provider combination is not used because it rejects
 the prompt's own negative security constraints; server-side deterministic

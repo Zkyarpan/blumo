@@ -4,7 +4,6 @@ import {
   Check,
   Clock3,
   GitBranch,
-  GraduationCap,
   Zap,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -101,7 +100,7 @@ function ReadyMission({
               backgroundColor: "var(--state-success-soft)",
             }}
           >
-            <Check aria-hidden="true" /> Ready
+            <Check aria-hidden="true" /> Ready to review
           </Badge>
           <Badge variant="outline">{mission.difficulty}</Badge>
         </div>
@@ -125,38 +124,16 @@ function ReadyMission({
         <span className="font-mono">{state.repositoryName}</span>
       </div>
 
-      <div>
-        <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-          Acceptance checklist
-        </h3>
-        <ul className="mt-2 space-y-2">
-          {mission.acceptance_checklist.map((item) => (
-            <li key={item} className="flex gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-              <Check className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-lg border p-3" style={{ borderColor: "var(--border-default)" }}>
-          <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-            Suggested commit message
-          </p>
-          <p className="mt-1 font-mono text-sm" style={{ color: "var(--text-primary)" }}>
-            {mission.suggested_commit_message}
-          </p>
-        </div>
-        <div className="rounded-lg border p-3" style={{ borderColor: "var(--border-default)" }}>
-          <p className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-            <GraduationCap className="size-4" aria-hidden="true" /> Learning outcome
-          </p>
-          <p className="mt-1 text-sm" style={{ color: "var(--text-primary)" }}>
-            {mission.learning_outcome}
-          </p>
-        </div>
-      </div>
+      <Link
+        href={`/tasks/${state.taskId}/review`}
+        className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium"
+        style={{
+          backgroundColor: "var(--accent-primary)",
+          color: "#ffffff",
+        }}
+      >
+        Review mission →
+      </Link>
     </div>
   );
 }
