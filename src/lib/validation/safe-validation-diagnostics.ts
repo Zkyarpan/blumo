@@ -2,6 +2,9 @@ import type { ZodIssue } from "zod";
 
 export type ValidationStage =
   | "action_input"
+  | "approve_action_input"
+  | "reject_action_input"
+  | "regenerate_action_input"
   | "profile_context"
   | "goal_context"
   | "repository_context"
@@ -9,6 +12,7 @@ export type ValidationStage =
   | "claim_result"
   | "claim_context"
   | "prompt_input"
+  | "regeneration_prompt_input"
   | "provider_configuration"
   | "provider_envelope"
   | "provider_content_json"
