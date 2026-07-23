@@ -162,9 +162,65 @@ Never paste the webhook secret into Smee messages, logs, screenshots, or source.
 
 ---
 
-## 8. Production Setup Checklist
+## 8. Supabase Custom SMTP (Resend)
 
-When deploying to Vercel (Unit 19):
+Configure Supabase to deliver authentication emails (confirmation, password
+reset, magic link, change-email) through Resend so they arrive from
+`no-reply@mail.arpankarki.com.np`.
+
+> **This is a one-time manual step in the Supabase dashboard.** It is NOT
+> configured through environment variables in the application.
+
+### Steps
+
+1. Go to your Supabase project dashboard.
+2. Navigate to: **Authentication → SMTP Settings**.
+3. Enable **Custom SMTP**.
+4. Fill in the following fields:
+
+   | Field | Value |
+   |---|---|
+   | SMTP Host | `smtp.resend.com` |
+   | Port | `587` |
+   | Username | `resend` |
+   | Password | Your **Blumo Supabase Auth** Resend API key (a separate key from product email) |
+   | Sender name | `Blumo` |
+   | Sender email | `no-reply@mail.arpankarki.com.np` |
+
+5. Click **Save**.
+
+> **Key isolation:** Use a separate Resend API key (`Blumo Supabase Auth`) for
+> SMTP — distinct from the `Blumo Product Emails` key used by the application.
+> This allows each key to be rotated independently.
+
+### Site URL and Redirect URLs
+
+Also configure under **Authentication → URL Configuration**:
+
+| Field | Local development | Production |
+|---|---|---|
+| Site URL | `http://localhost:3000` | `https://yourdomain.com` |
+| Redirect URLs | `http://localhost:3000/**` | `https://yourdomain.com/**` |
+
+### Supabase Auth Email Templates
+
+The following Supabase-owned email templates are configured in the Supabase
+dashboard under **Authentication → Email Templates**. Do NOT duplicate them
+through the Resend API — Supabase owns these flows entirely.
+
+- **Confirmation email** — sent after sign-up, contains confirmation link.
+- **Reset password** — sent when a user requests a password reset.
+- **Magic link** — sent for passwordless sign-in (if enabled).
+- **Change email address** — sent when a user changes their email.
+
+None of these templates should be replicated or triggered through the
+application's Resend product email code.
+
+---
+
+## 9. Production Setup Checklist
+
+When deploying to Vercel:
 
 - Create a separate **Blumo** (production) GitHub App.
 - Set Homepage URL and Setup URL to the production domain.
@@ -172,5 +228,13 @@ When deploying to Vercel (Unit 19):
 - Change visibility to **Public** only if you want any GitHub user to be
   able to install; keep it **Private** for the closed beta.
 - Add all environment variables to the Vercel project settings under
-  **Environment Variables → Production**.
-- Never expose the private key or webhook secret in source code or logs.
+  **Environment Variables → Production**:
+  - All `GITHUB_APP_*` values
+  - `SUPABASE_SECRET_KEY`
+  - `RESEND_API_KEY` (product email key, starts with `re_`)
+  - `RESEND_AUTH_FROM`, `RESEND_TASKS_FROM`, `RESEND_PROGRESS_FROM`, `RESEND_SUPPORT_FROM`
+  - `RESEND_REPLY_TO`
+  - `NEXT_PUBLIC_SITE_URL` set to the production URL
+- Configure Supabase custom SMTP with the **Blumo Supabase Auth** Resend key.
+- Never expose the private key, webhook secret, or any Resend key in source
+  code, logs, client bundles, or API responses.

@@ -38,7 +38,7 @@ export default async function MissionReviewPage({ params }: ReviewPageProps) {
 
   if (result.kind === "error" || result.kind === "invalid") {
     return (
-      <PageContainer width="default" className="py-10">
+      <PageContainer width="wide" className="py-10">
         <div
           role="alert"
           className="rounded-xl border p-6"
@@ -59,7 +59,7 @@ export default async function MissionReviewPage({ params }: ReviewPageProps) {
   }
 
   return (
-    <PageContainer width="default" className="py-10">
+    <PageContainer width="wide" className="py-10">
       <MissionReview data={result.data} />
     </PageContainer>
   );

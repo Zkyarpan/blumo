@@ -39,7 +39,7 @@ export default async function TaskPage({ params }: TaskPageProps) {
 
   if (result.kind !== "found" || !result.data.currentVersion) {
     return (
-      <PageContainer width="default" className="py-10">
+      <PageContainer width="wide" className="py-10">
         <div
           role="alert"
           className="rounded-xl border p-6"
@@ -64,7 +64,7 @@ export default async function TaskPage({ params }: TaskPageProps) {
   // If not approved, redirect to review page
   if (task.status !== "approved") {
     return (
-      <PageContainer width="default" className="py-10">
+      <PageContainer width="wide" className="py-10">
         <div
           className="rounded-xl border p-6 space-y-4"
           style={{
@@ -88,7 +88,7 @@ export default async function TaskPage({ params }: TaskPageProps) {
   }
 
   return (
-    <PageContainer width="default" className="py-10">
+    <PageContainer width="wide" className="py-10">
       <div className="space-y-6">
         {/* Success banner */}
         <div
@@ -110,14 +110,14 @@ export default async function TaskPage({ params }: TaskPageProps) {
               className="font-semibold"
               style={{ color: "var(--state-success)" }}
             >
-              Mission approved. No GitHub changes have been made.
+              Mission approved. No GitHub changes have been made yet.
             </p>
             <p
               className="mt-0.5 text-sm"
               style={{ color: "var(--text-secondary)" }}
             >
-              The task workspace is the next step and is coming in a future
-              update.
+              Review the proposed commit and confirm to create a branch and file
+              on GitHub.
             </p>
           </div>
         </div>
@@ -175,13 +175,25 @@ export default async function TaskPage({ params }: TaskPageProps) {
           </div>
         </div>
 
-        <Link
-          href={`/tasks/${taskId}/review`}
-          className="inline-block text-sm font-medium underline underline-offset-4"
-          style={{ color: "var(--text-muted)" }}
-        >
-          ← Back to mission review
-        </Link>
+        <div className="flex flex-wrap gap-4">
+          <Link
+            href={`/tasks/${taskId}/commit`}
+            className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium"
+            style={{
+              backgroundColor: "var(--accent-primary)",
+              color: "#ffffff",
+            }}
+          >
+            Review and commit →
+          </Link>
+          <Link
+            href={`/tasks/${taskId}/review`}
+            className="inline-block text-sm font-medium underline underline-offset-4"
+            style={{ color: "var(--text-muted)" }}
+          >
+            ← Back to mission review
+          </Link>
+        </div>
       </div>
     </PageContainer>
   );

@@ -149,5 +149,36 @@ export async function saveOnboarding(
     };
   }
 
+  // Welcome email — fire-and-forget after successful onboarding.
+  // Email failure never rolls back the onboarding transaction.
+  const {
+    data: { user: sessionUser },
+  } = await supabase.auth.getUser();
+  if (sessionUser?.email) {
+    const recipientEmail = sessionUser.email;
+    const { data: goalForEmail } = await supabase
+      .from("goals")
+      .select("title")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+
+    void import("@/lib/email/send-welcome")
+      .then(({ sendWelcomeEmail }) =>
+        sendWelcomeEmail({
+          recipientEmail,
+          recipientName:
+            (sessionUser.user_metadata?.full_name as string | undefined) ??
+            (sessionUser.user_metadata?.user_name as string | undefined) ??
+            recipientEmail,
+          goal: goalForEmail?.title ?? input.title,
+        })
+      )
+      .catch(() => {
+        // Best-effort; never throw from email send or module initialization.
+      });
+  }
+
   return { ok: true, data: null };
 }

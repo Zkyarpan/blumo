@@ -100,7 +100,7 @@ export function AppHeader({ user, showMobileNav = true }: AppHeaderProps) {
               <form action={signOut}>
                 <button
                   type="submit"
-                  className="text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors"
+                  className="text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer hover:bg-[var(--bg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                   style={{
                     color: "var(--text-muted)",
                     backgroundColor: "transparent",

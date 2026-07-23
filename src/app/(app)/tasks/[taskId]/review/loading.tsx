@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function MissionReviewLoading() {
   return (
-    <PageContainer width="default" className="py-10">
+    <PageContainer width="wide" className="py-10">
       <div className="space-y-6" aria-busy="true" aria-label="Loading mission review">
         {/* AI notice skeleton */}
         <div

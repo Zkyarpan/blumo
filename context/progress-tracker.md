@@ -17,35 +17,79 @@ Update this file after every meaningful implementation change.
 - **Unit 10: AI Mission Generation is complete, manually verified with the real
   AI provider, and merged into main.**
 - **Unit 11 specification is complete and merged into main.**
-- **Unit 11: Mission Review and Approval — automated verification complete.
-  Awaiting manual verification and merge.**
-- **Current phase: Unit 11 verification.**
+- **Unit 11: Mission Review and Approval — complete, manually verified, and
+  merged into main.**
+- **Unit 12 specification is complete and merged into main.**
+- **Current phase: Integrated product stabilization — email, notifications, GitHub commit verification, real Settings/Tasks/History.**
 
 ## Current Goal
 
-Verify and merge Unit 11: Mission Review and Approval.
+Integrated product stabilization. Complete all existing user flows, Resend email
+delivery, notification preferences, authenticated pages, and real GitHub commit
+verification. Do not begin another numbered unit.
 
-Manual verification checklist (from spec §15):
-- Open the review page for a generated mission and confirm all fields display.
-- Confirm AI-generated label and no-GitHub-write explanation are visible.
-- Approve the mission and confirm status changes to `approved`.
-- Confirm `/tasks/[taskId]` shows the approved banner and links back.
-- Reject a generated mission with an optional reason.
-- After rejection, submit regeneration feedback and confirm a new version appears.
-- Confirm repository-unavailable warning blocks approval/regeneration.
-- Confirm repeated approval returns idempotent result.
+Remaining to complete:
+- Real Resend email send must succeed (test email in dev + welcome on onboarding).
+- Supabase Auth email must be delivered through Resend SMTP.
+- A real GitHub commit must succeed end-to-end.
+- Tasks, History, and Settings pages must show real data.
+- Notification preferences must be saveable and respected.
+- All verification commands must pass.
+
+**Do not begin Unit 13.**
+
+## Production Readiness Gate
+
+The project must NOT be marked production-ready until all of the following are
+manually verified:
+1. A test email is received in the developer's inbox via Resend API.
+2. Supabase Auth email (confirmation or password reset) is delivered via Resend SMTP.
+3. Welcome email sends once after onboarding completes.
+4. Mission-generated email sends after mission persistence.
+5. A real GitHub commit succeeds exactly once end-to-end.
+6. Commit-success email contains a valid GitHub link.
+7. Notification preferences save and are respected before sending optional emails.
+8. No secret appears in browser, logs, database, or Git.
+9. All lint, typecheck, test, and build commands pass.
+
+Manual verification checklist (from spec §14):
+- Approve one test mission and open `/tasks/[taskId]/commit`.
+- Verify all proposal fields (repo, base branch, proposed branch, path, content, commit message, AI notice).
+- Click Cancel — verify no GitHub branch or commit was created, task remains `approved`.
+- Click Confirm and commit — verify success screen with SHA, branch, path, GitHub links.
+- Verify on GitHub: branch exists, file is at `blumo/<date>-<title>.md`, no PR opened.
+- Verify in Supabase: `commits` row exists with correct fields and `status = 'created'`; `daily_tasks.status = 'completed'`; audit event present.
+- Repeat Confirm — verify `already_committed`, no second commit.
+- Remove repo access — verify commit blocked.
+- Suspend installation — verify commit blocked.
+- Verify Tasks page shows mission with correct status and actions.
+- Verify History page shows commit event.
+- Verify Settings page shows real profile, goal, and GitHub connection.
+- Verify all sidebar routes display meaningful content.
 
 ## In Progress
 
-- **Unit 11** automated verification passed (lint: 0 warnings, typecheck: clean,
-  301 tests across 41 files, production build clean). Awaiting manual verification
-  and merge.
+- **Unit 12** integration stabilization pass complete.
+- Tasks, History, and Settings pages rebuilt with real authenticated data.
+- GitHub commit error handling improved: full `ExecuteCommitResult` type returns
+  commit SHA, URL, branch, file path, and repository on success.
+- CommitConfirmForm updated: spinner progress, full success state with GitHub
+  links, per-error-code user messages, database_error no-retry warning.
+- All sidebar nav items: `cursor-pointer` + `focus-visible` ring on links and buttons.
+- `loading.tsx` and `error.tsx` added for tasks, history, settings routes.
+- Welcome-email delivery is loaded only after onboarding succeeds and an email
+  address is present, so optional email configuration is not evaluated by
+  unrelated onboarding flows or tests.
+- Final automated verification: lint 0 warnings, typecheck clean,
+  395 tests across 46 files, production build clean with all 15 routes.
 
 ## Next Up
 
-1. Manually verify Unit 11 per the specification checklist above.
-2. Merge Unit 11 into main.
-3. Do not begin Unit 12 until Unit 11 is merged.
+1. Apply migration 20240001000018 to hosted Supabase project (if not already applied).
+2. Complete integration stabilization pass.
+3. Manually verify all checklist items above.
+4. Merge Unit 12 into main.
+5. Do not begin Unit 13.
 
 ## Open Questions
 
@@ -231,4 +275,14 @@ Unit 11: Mission Review and Approval — automated verification complete.
   `/tasks/[taskId]` and `/tasks/[taskId]/review` routes present.
 - No GitHub write, no installation token, no branch/file/commit/PR operation.
 
-Next step: apply migration to hosted Supabase, manually verify, and merge.
+Unit 12: Approved Mission GitHub Commit — integration stabilization in progress.
+
+- Core Unit 12 server action, service, and repository implemented.
+- Commit proposal page shows full proposal details.
+- Error states implemented for repository_unavailable, installation_suspended,
+  not_approved, already_committed.
+- Integration stabilization pass: Tasks, History, Settings pages rebuilt with
+  real data; commit error handling improved with full diagnostic codes;
+  commit success UI enhanced with GitHub links.
+- Final automated verification: lint 0 warnings, typecheck clean, 395 tests
+  across 46 files, and production build clean with all 15 routes.
