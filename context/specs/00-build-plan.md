@@ -360,6 +360,7 @@ Build:
 - Supabase production URLs.
 - GitHub App production URLs.
 - Resend sender tests.
+- Protected daily Supabase keep-alive cron.
 - Security headers.
 - Error pages.
 - Basic operational checklist.

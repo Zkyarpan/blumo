@@ -37,6 +37,22 @@ to `.env.local`, set `POLLINATIONS_API_KEY`, and optionally override
 `POLLINATIONS_TEXT_MODEL` (the default is `openai`). Never prefix either value
 with `NEXT_PUBLIC_`.
 
+## Supabase Keep-Alive
+
+Production includes a protected Vercel Cron request to
+`/api/cron/supabase-keep-alive` every day at `03:17 UTC`. The route performs one
+minimal Supabase database query and does not return database data.
+
+Generate a random `CRON_SECRET` with at least 32 characters and configure the
+same value in:
+
+- local ignored `.env.local`; and
+- Vercel project settings for the Production environment.
+
+Vercel automatically sends this value as
+`Authorization: Bearer <CRON_SECRET>` when invoking the cron route. Never commit
+the real value or place it in a URL.
+
 Blumo is not a fake-commit generator. Its product value is helping developers learn consistently, produce useful work, document progress, and build credible evidence of growth.
 
 ## Product Summary

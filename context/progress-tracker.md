@@ -21,6 +21,8 @@ Update this file after every meaningful implementation change.
   merged into main.**
 - **Unit 12 specification is complete and merged into main.**
 - **Current phase: Integrated product stabilization — email, notifications, GitHub commit verification, real Settings/Tasks/History.**
+- **Operational keep-alive unit is complete and locally verified: protected
+  daily Vercel Cron request to keep the Supabase Free project active.**
 
 ## Current Goal
 
@@ -69,6 +71,14 @@ Manual verification checklist (from spec §14):
 
 ## In Progress
 
+- **Operational Supabase keep-alive complete**:
+  - dedicated read-only route;
+  - `CRON_SECRET` bearer authentication;
+  - daily Vercel schedule at `03:17 UTC`;
+  - sanitized route tests and deployment documentation;
+  - generated 64-character secret stored only in ignored `.env.local`;
+  - lint and typecheck clean, 403 tests across 47 files, production build clean
+    with `/api/cron/supabase-keep-alive` present.
 - **Unit 12** integration stabilization pass complete.
 - Tasks, History, and Settings pages rebuilt with real authenticated data.
 - GitHub commit error handling improved: full `ExecuteCommitResult` type returns
@@ -85,11 +95,13 @@ Manual verification checklist (from spec §14):
 
 ## Next Up
 
-1. Apply migration 20240001000018 to hosted Supabase project (if not already applied).
-2. Complete integration stabilization pass.
-3. Manually verify all checklist items above.
-4. Merge Unit 12 into main.
-5. Do not begin Unit 13.
+1. Configure the same `CRON_SECRET` value in the Vercel Production environment
+   and deploy `vercel.json` so the daily cron becomes active.
+2. Apply migration 20240001000018 to hosted Supabase project (if not already applied).
+3. Complete integration stabilization pass.
+4. Manually verify all checklist items above.
+5. Merge Unit 12 into main.
+6. Do not begin Unit 13.
 
 ## Open Questions
 
@@ -286,3 +298,17 @@ Unit 12: Approved Mission GitHub Commit — integration stabilization in progres
   commit success UI enhanced with GitHub links.
 - Final automated verification: lint 0 warnings, typecheck clean, 395 tests
   across 46 files, and production build clean with all 15 routes.
+
+Operational Supabase Keep-Alive — implementation and local verification complete.
+
+- `GET /api/cron/supabase-keep-alive` requires the Vercel `CRON_SECRET` bearer
+  token and compares credentials in constant time.
+- Valid calls perform one head/count query against `profiles` through the
+  server-only Supabase admin client and return no database data.
+- Missing configuration, unauthorized requests, Supabase errors, and thrown
+  failures return fixed sanitized responses.
+- `vercel.json` runs the route daily at `03:17 UTC`.
+- A random 64-character local secret exists only in ignored `.env.local`;
+  `.env.example` contains a placeholder.
+- Final automated verification: lint 0 warnings, typecheck clean, 403 tests
+  across 47 files, and production build clean with the cron route present.

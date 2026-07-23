@@ -266,6 +266,26 @@ The commit endpoint must be idempotent. A task may have at most one successful M
 
 Do not create one cron definition per user.
 
+## Operational Supabase Keep-Alive
+
+The production Vercel deployment invokes `GET /api/cron/supabase-keep-alive`
+once per day at `03:17 UTC`. This is an infrastructure health request only; it
+does not implement Phase 2 user scheduling and must never generate missions,
+send email, or create GitHub commits.
+
+The route:
+
+- requires Vercel's `Authorization: Bearer <CRON_SECRET>` header;
+- fails closed when `CRON_SECRET` is missing or invalid;
+- performs one minimal server-only database query through the existing Supabase
+  admin client;
+- returns only a fixed success or sanitized failure response; and
+- never returns queried data, database errors, credentials, or project metadata.
+
+The schedule is configured in `vercel.json`. `CRON_SECRET` is generated locally
+in ignored `.env.local`, documented as a placeholder in `.env.example`, and must
+also be configured in the Vercel production environment.
+
 ## API Response Convention
 
 Successful response:
@@ -308,3 +328,5 @@ Do not expose provider secrets, raw stack traces, private keys, or unfiltered th
 13. A task cannot produce more than one successful MVP commit.
 14. Email delivery failure cannot change a successful task or commit into a failed GitHub operation.
 15. Architecture, scope, and security changes are documented before implementation proceeds.
+16. Operational cron endpoints fail closed, require a server-only secret, and
+    cannot trigger user product workflows.

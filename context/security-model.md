@@ -283,6 +283,19 @@ Handle:
 - Honour notification preferences.
 - Operational security alerts may remain enabled where legally and product-appropriately required.
 
+## Operational Cron Security
+
+- Protect every operational cron route with the server-only `CRON_SECRET`.
+- Require an exact `Authorization: Bearer <CRON_SECRET>` match and compare the
+  secret in constant time.
+- Return `503` when the server secret is missing or invalid at startup and `401`
+  for an unauthenticated request.
+- Never place `CRON_SECRET` in client code, a query string, logs, database rows,
+  response bodies, or committed environment files.
+- The Supabase keep-alive route may perform only one minimal read query. It may
+  not mutate product data, generate missions, send email, or call GitHub.
+- Return fixed sanitized response codes; never expose raw Supabase errors.
+
 ## Logging
 
 Log:

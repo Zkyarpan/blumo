@@ -34,4 +34,23 @@ describe("server environment", () => {
       "Invalid server environment variables"
     );
   });
+
+  it("accepts a cron secret with at least 32 characters", async () => {
+    setRequiredEnvironment();
+    vi.stubEnv("CRON_SECRET", "c".repeat(32));
+
+    const { serverEnv } = await import("@/lib/env/server");
+
+    expect(serverEnv.CRON_SECRET).toBe("c".repeat(32));
+  });
+
+  it("rejects a configured cron secret shorter than 32 characters", async () => {
+    setRequiredEnvironment();
+    vi.stubEnv("CRON_SECRET", "too-short");
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    await expect(import("@/lib/env/server")).rejects.toThrow(
+      "Invalid server environment variables"
+    );
+  });
 });

@@ -11,6 +11,7 @@ import { z } from "zod";
  *            GITHUB_APP_CLIENT_ID, GITHUB_APP_CLIENT_SECRET
  *   Unit 10: AI provider key
  *   Stabilization: RESEND_API_KEY, RESEND_*_FROM, RESEND_REPLY_TO, NEXT_PUBLIC_SITE_URL
+ *   Operations: CRON_SECRET for authenticated Vercel Cron routes
  */
 
 // Validates a friendly-name email string like: Blumo <no-reply@mail.arpankarki.com.np>
@@ -87,6 +88,10 @@ const serverEnvSchema = z.object({
   RESEND_SUPPORT_FROM: senderAddressSchema.optional(),
   RESEND_REPLY_TO: z.string().email("RESEND_REPLY_TO must be a valid email address").optional(),
 
+  // Vercel Cron authentication. Optional at application startup so unrelated
+  // routes still work; cron handlers fail closed when it is not configured.
+  CRON_SECRET: z.string().min(32, "CRON_SECRET must be at least 32 characters").optional(),
+
   // Application URLs
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
@@ -119,6 +124,7 @@ function parseServerEnv(): ServerEnv {
     RESEND_PROGRESS_FROM: process.env.RESEND_PROGRESS_FROM,
     RESEND_SUPPORT_FROM: process.env.RESEND_SUPPORT_FROM,
     RESEND_REPLY_TO: process.env.RESEND_REPLY_TO,
+    CRON_SECRET: process.env.CRON_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   });
