@@ -404,7 +404,7 @@ export default async function AutoCommitsPage() {
             <div className="px-5 py-4">
               <AutoCommitSettings
                 schedule={stats.schedule}
-                userTimezone={stats.schedule?.timezone ?? "UTC"}
+                userTimezone={stats.schedule?.timezone ?? data.userTimezone}
               />
             </div>
           </section>

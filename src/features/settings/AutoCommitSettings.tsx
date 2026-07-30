@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
-import { Zap, Clock, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Zap, Clock, CheckCircle2, AlertCircle, Loader2, Info } from "lucide-react";
 import { saveAutoCommitScheduleAction, disableAutoCommitAction } from "./schedule.actions";
 import type { AutoCommitSchedule } from "./schedule.service";
 import type { ScheduleActionResult } from "./schedule.actions";
@@ -42,6 +42,7 @@ export function AutoCommitSettings({
   userTimezone,
 }: AutoCommitSettingsProps) {
   const [selectedTime, setSelectedTime] = useState(schedule?.localTime ?? "09:00");
+  const isUtc = userTimezone === "UTC" || userTimezone === "Etc/UTC";
 
   const [saveState, saveAction, savePending] = useActionState<ScheduleActionResult | null, FormData>(
     saveAutoCommitScheduleAction,
@@ -184,6 +185,16 @@ export function AutoCommitSettings({
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>
           Timezone: <span className="font-mono">{userTimezone}</span>
         </p>
+        {isUtc && (
+          <div className="flex items-start gap-1.5 text-xs rounded-lg border p-2.5" style={{ borderColor: "var(--state-warning)", color: "var(--state-warning)", backgroundColor: "var(--bg-surface)" }}>
+            <Info className="size-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+            <span>
+              Your timezone is set to UTC. Go to{" "}
+              <a href="/settings" className="underline underline-offset-2">Settings → Profile</a>{" "}
+              and update onboarding to set your real timezone so commits happen at a sensible local time.
+            </span>
+          </div>
+        )}
       </form>
 
       {/* Hidden disable form */}

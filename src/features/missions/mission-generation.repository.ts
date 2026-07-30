@@ -264,6 +264,8 @@ export async function getOwnedTodayMission(
     .maybeSingle();
 
   if (todayError) throw new Error("today_mission_query_failed");
+
+  // Today's row exists and is not failed — show it directly.
   if (todayData && todayData.status !== "failed") {
     return mapOwnedMissionRow(todayData as Record<string, unknown>);
   }
@@ -282,9 +284,13 @@ export async function getOwnedTodayMission(
   if (activeData) {
     return mapOwnedMissionRow(activeData as Record<string, unknown>);
   }
-  if (todayData) {
+
+  // Only show a failed row if it is actually from today — never show a stale
+  // failure from a previous date as the current state.
+  if (todayData && todayData.scheduled_date === scheduledDate) {
     return mapOwnedMissionRow(todayData as Record<string, unknown>);
   }
+
   return { kind: "none" };
 }
 

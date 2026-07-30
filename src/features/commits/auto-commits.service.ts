@@ -36,6 +36,7 @@ export interface AutoCommitsPageData {
   stats: AutoCommitStats;
   recentCommits: AutoCommitCommit[];
   hasAnyCommit: boolean;
+  userTimezone: string;
 }
 
 // --------------------------------------------------------------------------
@@ -101,6 +102,14 @@ export async function getAutoCommitsPageData(
   try {
     const supabase = await createSupabaseServerClient();
     const admin = createSupabaseAdminClient();
+
+    // Load profile timezone for display
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select("timezone")
+      .eq("id", userId)
+      .maybeSingle();
+    const userTimezone = (profileRow?.timezone as string | null) ?? "UTC";
 
     // Load all commits for this user
     const { data: commitRows, error: commitError } = await supabase
@@ -201,6 +210,7 @@ export async function getAutoCommitsPageData(
       },
       recentCommits: recentCommits.slice(0, 50),
       hasAnyCommit: totalCommits > 0,
+      userTimezone,
     };
   } catch {
     return null;

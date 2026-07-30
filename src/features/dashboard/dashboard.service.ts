@@ -37,24 +37,13 @@ export type DashboardData = {
   todayMission: TodayMissionState;
 };
 
-/**
- * Fetches all data the dashboard needs in one call.
- *
- * - Returns null if the profile row is missing or a critical query throws.
- * - Returns DashboardData with activeGoal: null when no active goal exists.
- * - Returns DashboardData with completedTaskCount: 0 when there are no
- *   committed tasks.
- * - Uses the anon-key server client so RLS is enforced; never uses the
- *   service-role key for user-owned reads.
- * - Does not throw — callers receive null on any unexpected failure.
- */
 export async function getDashboardData(
   userId: string
 ): Promise<DashboardData | null> {
   try {
     const supabase = await createSupabaseServerClient();
 
-    // 1. Fetch profile
+    // 1. Profile first — needed for timezone before parallelising the rest
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select(
@@ -63,80 +52,74 @@ export async function getDashboardData(
       .eq("id", userId)
       .maybeSingle();
 
-    if (profileError || !profile) {
-      return null;
-    }
+    if (profileError || !profile) return null;
 
-    let todayMission: TodayMissionState = { kind: "invalid" };
+    // 2. Parallelise all remaining independent queries
     const localDate = getUserLocalDate(new Date(), profile.timezone);
-    if (localDate) {
-      try {
-        todayMission = await getOwnedTodayMission(userId, localDate);
-      } catch {
-        todayMission = { kind: "invalid" };
-      }
-    }
 
-    // 2. Fetch active goal (soft failure — return null goal, not null data)
-    let activeGoal: DashboardData["activeGoal"] = null;
-    const { data: goalData, error: goalError } = await supabase
-      .from("goals")
-      .select("id, title, technology, task_type, daily_minutes, status, created_at")
-      .eq("user_id", userId)
-      .eq("status", "active")
-      .limit(1)
-      .maybeSingle();
+    const [
+      goalResult,
+      countResult,
+      installationResult,
+      todayMission,
+    ] = await Promise.all([
+      // Active goal
+      supabase
+        .from("goals")
+        .select("id, title, technology, task_type, daily_minutes, status, created_at")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle(),
 
-    if (!goalError && goalData) {
-      activeGoal = goalData;
-    }
+      // Completed task count
+      supabase
+        .from("daily_tasks")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("status", "completed"),
 
-    // 3. Count completed tasks (soft failure — default 0)
-    let completedTaskCount = 0;
-    const { count, error: countError } = await supabase
-      .from("daily_tasks")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("status", "completed");
+      // GitHub installation
+      supabase
+        .from("github_installations")
+        .select("id, status")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
 
-    if (!countError && typeof count === "number") {
-      completedTaskCount = count;
-    }
+      // Today's mission (uses its own client call internally)
+      localDate
+        ? getOwnedTodayMission(userId, localDate).catch(() => ({ kind: "invalid" } as TodayMissionState))
+        : Promise.resolve({ kind: "none" } as TodayMissionState),
+    ]);
 
-    // 4. Fetch the latest verified GitHub installation state. A query error is
-    // critical because presenting it as disconnected would fabricate status.
+    // Process goal
+    const activeGoal = !goalResult.error && goalResult.data ? goalResult.data : null;
+
+    // Process count
+    const completedTaskCount =
+      !countResult.error && typeof countResult.count === "number"
+        ? countResult.count
+        : 0;
+
+    // Process installation — critical, return null on error
+    if (installationResult.error) return null;
+
     let installationStatus: DashboardData["installationStatus"] = null;
     let activeInstallationId: string | null = null;
-    const { data: installationData, error: installationError } = await supabase
-      .from("github_installations")
-      .select("id, status")
-      .eq("user_id", userId)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
 
-    if (installationError) return null;
-
-    if (installationData) {
-      if (
-        installationData.status !== "active" &&
-        installationData.status !== "suspended" &&
-        installationData.status !== "uninstalled"
-      ) {
-        return null;
-      }
-
-      installationStatus = installationData.status;
-      if (installationStatus === "active") {
-        activeInstallationId = installationData.id;
-      }
+    if (installationResult.data) {
+      const s = installationResult.data.status;
+      if (s !== "active" && s !== "suspended" && s !== "uninstalled") return null;
+      installationStatus = s;
+      if (s === "active") activeInstallationId = installationResult.data.id;
     }
 
-    // 5. Fetch the one selected active repository for that installation.
+    // 3. Selected repository — only needed when installation is active
     let selectedRepository: DashboardData["selectedRepository"] = null;
-
     if (activeInstallationId) {
-      const { data: repositoryData, error: repositoryError } = await supabase
+      const { data: repoData, error: repoError } = await supabase
         .from("repositories")
         .select("id, name, full_name, default_branch")
         .eq("user_id", userId)
@@ -146,9 +129,7 @@ export async function getDashboardData(
         .limit(1)
         .maybeSingle();
 
-      if (!repositoryError && repositoryData) {
-        selectedRepository = repositoryData;
-      }
+      if (!repoError && repoData) selectedRepository = repoData;
     }
 
     return {
