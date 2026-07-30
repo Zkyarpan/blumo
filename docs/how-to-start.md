@@ -55,6 +55,11 @@ Open:
 http://localhost:3000
 ```
 
+Blumo's development server is intentionally pinned to port `3000` because that
+origin is part of the OAuth redirect allowlist. If startup reports that the
+port is already in use, stop the other local development server before starting
+Blumo; do not run Blumo on an automatically selected port.
+
 Commit the untouched framework foundation:
 
 ```bash
@@ -155,7 +160,13 @@ After Unit 01 passes:
 2. Store the database password safely.
 3. Copy the project URL and publishable key.
 4. Configure the GitHub provider in Supabase Auth.
-5. Write `context/specs/02-supabase-auth.md` before implementing authentication.
+5. In Supabase **Auth → URL Configuration**, add:
+   - `http://localhost:3000/api/github/callback`
+   - `https://blumo-ten.vercel.app/api/github/callback`
+6. Keep the GitHub OAuth provider callback set to
+   `<SUPABASE_URL>/auth/v1/callback`; Supabase must receive the provider response
+   before it redirects to Blumo's application callback.
+7. Write `context/specs/02-supabase-auth.md` before implementing authentication.
 
 Do not create all database tables manually in the dashboard. Use versioned migrations during Unit 03.
 

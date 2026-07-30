@@ -275,7 +275,8 @@ Authenticated user → load profile (getProfile()) → check onboarding_complete
 be lightweight — select only `id` and `onboarding_completed_at`. Use the
 Supabase server client (not the admin client) so RLS is enforced.
 
-The `/api/auth/callback` and `/login` routes must never be gated by the
+The `/api/github/callback`, legacy `/api/auth/callback`, and `/login` routes
+must never be gated by the
 onboarding check.
 
 ---
@@ -772,7 +773,8 @@ if (user) {
 - [ ] The Server Action returns an error when called without an authenticated
   session.
 - [ ] A second call with the same user does not create a duplicate active goal.
-- [ ] The proxy does not block `/api/auth/callback` or `/login`.
+- [ ] The proxy does not block `/api/github/callback`, legacy
+  `/api/auth/callback`, or `/login`.
 - [ ] `SUPABASE_SECRET_KEY` is not used during onboarding writes (anon key only).
 - [ ] Form state is preserved on recoverable errors (entered values are not cleared).
 - [ ] Submit button is disabled and shows "Saving…" while the action is pending.

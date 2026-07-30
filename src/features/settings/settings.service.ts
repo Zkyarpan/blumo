@@ -2,6 +2,7 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getEmailPreferences, DEFAULT_EMAIL_PREFERENCES, type EmailPreferences } from "./email-preferences.service";
+import { getActiveSchedule, type AutoCommitSchedule } from "./schedule.service";
 import { getResendConfigState } from "@/lib/env/server";
 
 // --------------------------------------------------------------------------
@@ -32,6 +33,7 @@ export interface SettingsData {
     } | null;
   };
   emailPreferences: EmailPreferences;
+  autoCommitSchedule: AutoCommitSchedule | null;
   resend: {
     configured: boolean;
     hasApiKey: boolean;
@@ -122,8 +124,11 @@ export async function getSettingsData(
       }
     }
 
-    // Email preferences
-    const emailPrefs = await getEmailPreferences(userId);
+    // Email preferences and schedule
+    const [emailPrefs, autoCommitSchedule] = await Promise.all([
+      getEmailPreferences(userId),
+      getActiveSchedule(userId),
+    ]);
     const resendState = getResendConfigState();
 
     return {
@@ -141,6 +146,7 @@ export async function getSettingsData(
         selectedRepository,
       },
       emailPreferences: emailPrefs ?? { ...DEFAULT_EMAIL_PREFERENCES },
+      autoCommitSchedule,
       resend: {
         configured: resendState.configured,
         hasApiKey: resendState.hasApiKey,

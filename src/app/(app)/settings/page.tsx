@@ -12,6 +12,7 @@ import {
   Clock,
   Mail,
   MessageSquare,
+  Zap,
 } from "lucide-react";
 import { getUser } from "@/features/auth/get-user";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -21,6 +22,7 @@ import { signOut } from "@/features/auth/sign-out.actions";
 import { EmailPreferencesForm } from "@/features/settings/EmailPreferencesForm";
 import { TestEmailButton } from "@/features/settings/TestEmailButton";
 import { SupportForm } from "@/features/settings/SupportForm";
+import { AutoCommitSettings } from "@/features/settings/AutoCommitSettings";
 
 export const metadata: Metadata = {
   title: "Settings — Blumo",
@@ -156,7 +158,7 @@ export default async function SettingsPage() {
     );
   }
 
-  const { profile, goal, github, emailPreferences, resend } = data;
+  const { profile, goal, github, emailPreferences, autoCommitSchedule, resend } = data;
   const isDev = process.env.NODE_ENV !== "production";
 
   return (
@@ -390,6 +392,14 @@ export default async function SettingsPage() {
               Reconnect GitHub App
             </Link>
           </div>
+        </SettingsSection>
+
+        {/* Auto-commit */}
+        <SettingsSection title="Auto-commit" icon={Zap}>
+          <AutoCommitSettings
+            schedule={autoCommitSchedule}
+            userTimezone={profile.timezone ?? "UTC"}
+          />
         </SettingsSection>
 
         {/* Email notifications */}

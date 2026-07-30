@@ -30,7 +30,7 @@ export const missionOutputSchema = z
     suggested_branch: trimmedText(1, 255),
     learning_outcome: trimmedText(10, 300),
   })
-  .strict();
+  .strip(); // strip unknown fields from AI output instead of failing on them
 
 export type MissionOutput = z.infer<typeof missionOutputSchema>;
 

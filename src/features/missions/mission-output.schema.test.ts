@@ -28,8 +28,17 @@ describe("validateMissionOutput", () => {
     expect(result).toEqual({ ok: true, mission: VALID_MISSION });
   });
 
+  it("strips unknown keys from AI output and still succeeds", () => {
+    const result = validateMissionOutput({ ...VALID_MISSION, mission_task_type: "learning_note", extra: true }, CONTEXT);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // extra fields must not appear on the parsed mission
+      expect(Object.keys(result.mission)).not.toContain("mission_task_type");
+      expect(Object.keys(result.mission)).not.toContain("extra");
+    }
+  });
+
   it.each([
-    ["unknown key", { ...VALID_MISSION, extra: true }],
     ["coercible estimate", { ...VALID_MISSION, estimated_minutes: "30" }],
     ["too much time", { ...VALID_MISSION, estimated_minutes: 45 }],
     ["wrong difficulty", { ...VALID_MISSION, difficulty: "advanced" }],

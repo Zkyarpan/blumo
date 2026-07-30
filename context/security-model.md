@@ -52,6 +52,21 @@ Every mutation must:
 
 Never trust a client-provided `user_id`.
 
+### Supabase GitHub Sign-In
+
+- Supabase Auth owns GitHub provider OAuth state validation and provider token
+  exchange.
+- Blumo accepts only the one-time Supabase PKCE code at
+  `/api/github/callback` and exchanges it server-side for a cookie session.
+- The callback never logs or returns the code, session, provider token, or raw
+  authentication error.
+- Post-login redirects must remain on the current application origin; protocol-
+  relative, absolute, and API callback destinations are rejected.
+- `/api/auth/callback` may remain only as a compatibility route using the same
+  secure handler. It must not create a second authentication system.
+- GitHub App installation IDs and installation tokens are never treated as
+  website login credentials.
+
 ## GitHub App Installation Verification
 
 The setup URL may contain an installation ID, but Blumo must not trust it directly.

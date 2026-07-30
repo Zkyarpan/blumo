@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Onboarding gate — only for authenticated users on app paths.
-  // Skip for /api/auth/callback and /login (already handled above).
+  // Auth callback API routes are public and never included in app route gating.
   if (user) {
     const isOnboardingPath =
       pathname === "/onboarding" || pathname.startsWith("/onboarding/");

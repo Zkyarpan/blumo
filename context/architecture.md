@@ -68,6 +68,16 @@ Supabase Auth with the GitHub provider owns:
 
 Website authentication does not itself grant repository write access.
 
+The canonical application callback is `GET /api/github/callback`. Supabase Auth
+redirects to this route with a one-time PKCE code after it has completed the
+GitHub provider exchange and state validation. The route exchanges that code for
+the existing Supabase session cookie and redirects to `/dashboard`. The legacy
+`GET /api/auth/callback` route remains as a compatibility handler for in-flight
+or previously configured redirects and delegates to the same callback service.
+
+Blumo does not exchange GitHub user OAuth codes itself, persist GitHub user
+access tokens, or use GitHub App installation tokens for website login.
+
 ### GitHub Repository Access
 
 The Blumo GitHub App owns:
@@ -265,6 +275,42 @@ The commit endpoint must be idempotent. A task may have at most one successful M
 8. The user still reviews and approves the contribution.
 
 Do not create one cron definition per user.
+
+## Auto-Commit Scheduling Architecture — Phase 2 (Active)
+
+Users may opt in to automatic daily commits. When enabled, Blumo generates a
+mission, auto-approves it on the user's behalf, and commits it without requiring
+manual review. The user must explicitly enable this in Settings and may disable
+it at any time.
+
+```text
+Vercel Cron (hourly) → GET /api/cron/daily-missions
+  │
+  ├── Query users with due active schedules (next_run_at ≤ now)
+  ├── For each user (sequential, atomic claim per user):
+  │     ├── generateMissionForUser(userId)           — existing service
+  │     ├── auto-approve the generated mission       — new RPC
+  │     ├── executeCommit(userId, taskId)             — existing service
+  │     ├── advance next_run_at by 24 hours
+  │     └── send "daily commit live" email           — new template
+  └── Return aggregated result counts
+```
+
+Rules:
+1. The cron route requires `Authorization: Bearer <CRON_SECRET>` — same pattern
+   as the keep-alive route.
+2. Each user is processed independently; one user's failure does not block
+   others.
+3. Auto-commit skips users whose installation is suspended, repo is unavailable,
+   or who already have a completed task for today.
+4. Auto-approve uses a service-role-only RPC that records an audit event with
+   `metadata.source = "auto_commit"`.
+5. The existing `executeCommit` service is reused unchanged.
+6. A failed auto-commit leaves the task in `approved` state so the user can
+   manually commit from the dashboard — it does not retry automatically.
+7. `next_run_at` advances only after a successful commit, not after a failure.
+8. Email delivery failure never changes a successful commit result.
+9. The cron route returns only sanitized counts — no user data, no secrets.
 
 ## Operational Supabase Keep-Alive
 

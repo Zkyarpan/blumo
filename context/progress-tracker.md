@@ -20,9 +20,13 @@ Update this file after every meaningful implementation change.
 - **Unit 11: Mission Review and Approval — complete, manually verified, and
   merged into main.**
 - **Unit 12 specification is complete and merged into main.**
+- **Phase 2: Auto-commit scheduling — complete and locally verified.**
 - **Current phase: Integrated product stabilization — email, notifications, GitHub commit verification, real Settings/Tasks/History.**
 - **Operational keep-alive unit is complete and locally verified: protected
   daily Vercel Cron request to keep the Supabase Free project active.**
+- **Authentication callback correction is complete and locally verified:
+  canonical Supabase PKCE callback at `/api/github/callback`, legacy
+  compatibility, and fixed local port enforcement.**
 
 ## Current Goal
 
@@ -93,6 +97,33 @@ Manual verification checklist (from spec §14):
 - Final automated verification: lint 0 warnings, typecheck clean,
   395 tests across 46 files, production build clean with all 15 routes.
 
+## Auto-Commit Feature (Phase 2) — Complete
+
+- `schedules` table with RLS, service-role RPCs (`upsert_auto_commit_schedule`,
+  `delete_auto_commit_schedule`, `advance_schedule_next_run`,
+  `auto_approve_mission`) — migration 20 applied to hosted Supabase.
+- Schedule service: `computeNextRunAt` (Intl timezone API), `getDueSchedules`,
+  `advanceScheduleNextRun`, `getActiveSchedule`.
+- Auto-commit service: `runAutoCommitForUser` — checks last-20h commit window
+  via the `commits` table (not `scheduled_date`), chains
+  `generateMissionForUser` → `auto_approve_mission` RPC → `executeCommit`.
+- Hourly Vercel Cron at `0 * * * *` → `GET /api/cron/daily-missions`,
+  protected by `CRON_SECRET` bearer token.
+- `/auto-commits` page: stat cards (total, auto, streak, last commit), commit
+  history with Manual/Auto badge, Run-now button, Schedule panel, Repositories
+  breakdown.
+- `AutoCommitSettings` component wired into both `/settings` and `/auto-commits`.
+- `RunNowButton`: `already_committed_today` shows green info state, not error.
+- `missionOutputSchema` changed from `.strict()` to `.strip()` — extra fields
+  returned by the AI (e.g. `mission_task_type`) are silently dropped instead of
+  failing the whole generation.
+- Sidebar and mobile nav updated with Auto-commits link.
+- `mission_auto_approved` audit action added to history service.
+- Final automated verification: lint 0 warnings, typecheck clean, 417 tests
+  across 50 files, production build clean with 20 routes.
+- First real commit verified: `Zkyarpan/blumo` SHA `88873e89` on Jul 30 2026.
+- Schedule active: daily at 00:00 UTC, next run Fri Jul 31 12:00 AM.
+
 ## Next Up
 
 1. Configure the same `CRON_SECRET` value in the Vercel Production environment
@@ -149,7 +180,9 @@ Manual verification checklist (from spec §14):
 - `@supabase/supabase-js` and `@supabase/ssr` installed.
 - Supabase client modules created: `browser.ts`, `server.ts`, `admin.ts`, `middleware.ts` in `src/lib/supabase/`.
 - Server and public env schemas extended with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`.
-- Auth callback route: `src/app/api/auth/callback/route.ts` (exchanges PKCE code for session, redirects to `/dashboard`).
+- Auth callback route is now canonical at
+  `src/app/api/github/callback/route.ts`; legacy `/api/auth/callback` delegates
+  to the same PKCE exchange handler for compatibility.
 - Login page: `src/app/(auth)/login/page.tsx` with minimal centred layout.
 - `LoginCard` component with GitHub sign-in button, error state, and terms note.
 - `signInWithGitHub` Server Action — initiates GitHub OAuth via Supabase, redirects to callback.
@@ -312,3 +345,24 @@ Operational Supabase Keep-Alive — implementation and local verification comple
   `.env.example` contains a placeholder.
 - Final automated verification: lint 0 warnings, typecheck clean, 403 tests
   across 47 files, and production build clean with the cron route present.
+
+Authentication Callback Correction — implementation and local verification
+complete.
+
+- Supabase GitHub sign-in now starts with canonical application callback
+  `/api/github/callback`; the previous `/api/auth/callback` remains a
+  compatibility route.
+- Both callbacks share a server-only PKCE exchange handler, use fixed sanitized
+  errors, reject unsafe post-login redirects, and do not persist or log GitHub
+  user tokens or OAuth codes.
+- Supabase local/production redirect configuration and GitHub App setup
+  documentation now distinguish website authentication from repository App
+  installation.
+- The development server is pinned to port `3000` so an occupied OAuth origin
+  fails visibly instead of silently launching Blumo on another port.
+- Local diagnosis found port `3000` currently belongs to the separate
+  `/Users/mac/arpankarki.com` Next.js project; Blumo's callback returned `307`
+  on its temporary port while that unrelated server correctly remained
+  untouched.
+- Final automated verification: lint 0 warnings, typecheck clean, 417 tests
+  across 50 files, and production build clean with both callback routes.

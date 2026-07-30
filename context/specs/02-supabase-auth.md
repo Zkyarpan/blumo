@@ -17,7 +17,9 @@ This unit includes only:
 - `@supabase/supabase-js` and `@supabase/ssr` installation.
 - Supabase browser, server, and middleware client factories in `src/lib/supabase/`.
 - Server environment schema extended with Supabase variables.
-- Auth callback route handler: `src/app/api/auth/callback/route.ts`.
+- Canonical auth callback route handler:
+  `src/app/api/github/callback/route.ts`.
+- Legacy compatibility handler: `src/app/api/auth/callback/route.ts`.
 - Login page: `src/app/(auth)/login/page.tsx` with layout.
 - Sign-in Server Action (GitHub OAuth redirect).
 - Sign-out Server Action.
@@ -89,7 +91,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
 ### 4. Auth Callback Route
 
-`src/app/api/auth/callback/route.ts`
+`src/app/api/github/callback/route.ts`
 
 - GET handler.
 - Reads `code` from the search params.
@@ -121,7 +123,8 @@ Create:
 
 - Server Action (`"use server"`).
 - Calls `supabase.auth.signInWithOAuth` with provider `github`.
-- Sets `redirectTo` to `${NEXT_PUBLIC_APP_URL}/api/auth/callback`.
+- Sets `redirectTo` to the configured application origin plus
+  `/api/github/callback`.
 - Returns the OAuth URL via `redirect()`.
 - Does not expose any tokens.
 
@@ -140,7 +143,8 @@ Create:
 - Runs on all `(app)` routes: `/dashboard`, `/onboarding`, `/history`, `/settings`, and any sub-paths.
 - Uses the middleware Supabase client to refresh the session cookie on every request.
 - If no valid session exists after refresh, redirects to `/login`.
-- Does not run on `/login`, `/api/auth/callback`, marketing routes, or static assets.
+- Does not gate `/login`, `/api/github/callback`, the legacy
+  `/api/auth/callback`, marketing routes, or static assets.
 - Follows the Supabase SSR middleware pattern exactly.
 
 Matcher config:
@@ -194,7 +198,8 @@ At minimum 2 new tests must pass, bringing the total to 8+.
 - [ ] `src/lib/env/public.ts` validates `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 - [ ] `/login` renders the Blumo wordmark, tagline, and GitHub button.
 - [ ] Clicking **Continue with GitHub** initiates the OAuth flow (manual test).
-- [ ] `/api/auth/callback` route exists.
+- [ ] `/api/github/callback` route exists.
+- [ ] `/api/auth/callback` remains as a compatibility route.
 - [ ] After OAuth, the user lands on `/dashboard` (manual test).
 - [ ] `/dashboard` shows the authenticated user's display name or GitHub username (manual test).
 - [ ] Navigating directly to `/dashboard` without a session redirects to `/login`.

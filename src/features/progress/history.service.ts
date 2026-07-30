@@ -96,6 +96,7 @@ export async function getHistoryPageData(
       .in("action", [
         "mission_generated",
         "mission_approved",
+        "mission_auto_approved",
         "mission_rejected",
         "mission_regeneration_succeeded",
         "mission_committed",

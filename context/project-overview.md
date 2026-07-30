@@ -152,7 +152,7 @@ The primary MVP user is a student or junior developer who:
 
 ### Deliberately Out of Scope for MVP
 
-- Fully automatic daily commits.
+- Fully automatic daily commits without user opt-in.
 - Unrestricted changes to existing application source code.
 - Direct writes outside `blumo/**`.
 - Repository-wide AI analysis.

@@ -17,7 +17,8 @@ export type EmailEventType =
   | "repository_access_removed"
   | "weekly_progress"
   | "support_acknowledgement"
-  | "test_email";
+  | "test_email"
+  | "auto_commit_success";
 
 // --------------------------------------------------------------------------
 // Normalized send result
@@ -160,4 +161,16 @@ export interface SupportAcknowledgementEmailData {
 export interface TestEmailData {
   recipientEmail: string;
   recipientName: string;
+}
+
+export interface AutoCommitSuccessEmailData {
+  recipientEmail: string;
+  recipientName: string;
+  missionTitle: string;
+  repositoryFullName: string;
+  branch: string;
+  filePath: string;
+  commitUrl: string;
+  commitSha: string;
+  taskId: string;
 }

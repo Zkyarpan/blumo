@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, LayoutDashboard, Zap, History, Settings } from "lucide-react";
+import { Menu, LayoutDashboard, Zap, History, Settings, GitCommitHorizontal } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -14,10 +14,11 @@ import { BlumoWordmark } from "@/components/shared/BlumoWordmark";
 import { cn } from "@/lib/utils/cn";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/tasks",     label: "Tasks",     icon: Zap           },
-  { href: "/history",   label: "History",   icon: History       },
-  { href: "/settings",  label: "Settings",  icon: Settings      },
+  { href: "/dashboard",     label: "Dashboard",    icon: LayoutDashboard     },
+  { href: "/tasks",         label: "Tasks",        icon: Zap                 },
+  { href: "/auto-commits",  label: "Auto-commits", icon: GitCommitHorizontal },
+  { href: "/history",       label: "History",      icon: History             },
+  { href: "/settings",      label: "Settings",     icon: Settings            },
 ] as const;
 
 /**

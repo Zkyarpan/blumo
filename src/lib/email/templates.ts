@@ -514,3 +514,52 @@ export function testEmailTemplate(data: {
 
   return { html, text, subject };
 }
+
+// --------------------------------------------------------------------------
+// Auto-commit success
+// --------------------------------------------------------------------------
+
+export function autoCommitSuccessTemplate(data: {
+  recipientName: string;
+  missionTitle: string;
+  repositoryFullName: string;
+  branch: string;
+  filePath: string;
+  commitUrl: string;
+  commitSha: string;
+  taskId: string;
+  replyTo?: string;
+}): { html: string; text: string; subject: string } {
+  const subject = "Your daily Blumo commit is live";
+  const name = escHtml(data.recipientName);
+  const title = escHtml(data.missionTitle);
+  const repo = escHtml(data.repositoryFullName);
+  const branch = escHtml(data.branch);
+  const filePath = escHtml(data.filePath);
+  const sha = data.commitSha.slice(0, 8);
+  const tasksUrl = appUrl("/tasks");
+
+  const html = layout(
+    subject,
+    `<h1>Daily commit live ✓</h1>
+    <p>Hi ${name}, Blumo automatically committed your daily mission to GitHub.</p>
+    <p class="meta"><strong>Mission:</strong> ${title}</p>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin:12px 0;">
+      <tr><td style="padding:4px 0;color:#6B7D71;width:120px">Repository</td><td style="font-family:monospace">${repo}</td></tr>
+      <tr><td style="padding:4px 0;color:#6B7D71">Branch</td><td style="font-family:monospace">${branch}</td></tr>
+      <tr><td style="padding:4px 0;color:#6B7D71">File</td><td style="font-family:monospace">${filePath}</td></tr>
+      <tr><td style="padding:4px 0;color:#6B7D71">SHA</td><td style="font-family:monospace">${sha}</td></tr>
+    </table>
+    <a href="${escHtml(data.commitUrl)}" class="btn">View on GitHub →</a>
+    <div class="notice" style="margin-top:16px">This commit was made automatically by Blumo on your behalf. To stop auto-commits, turn off auto-commit in <a href="${tasksUrl}" style="color:#2E9D5B">Settings</a>.</div>`,
+    data.replyTo
+  );
+
+  const text = textLayout(
+    subject,
+    `Daily mission committed: ${data.missionTitle}\n\nRepository: ${data.repositoryFullName}\nBranch: ${data.branch}\nFile: ${data.filePath}\nCommit: ${sha}\n\nView on GitHub:\n${data.commitUrl}\n\nThis commit was made automatically by Blumo. To disable auto-commits, visit Settings in the Blumo app.`
+  );
+
+  return { html, text, subject };
+}
+

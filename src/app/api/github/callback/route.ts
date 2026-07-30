@@ -4,10 +4,7 @@ import { handleAuthCallback } from "@/features/auth/auth-callback";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * Compatibility callback for OAuth requests started before the canonical route
- * changed to /api/github/callback.
- */
+/** Canonical Supabase GitHub authentication callback. */
 export async function GET(request: NextRequest) {
   return handleAuthCallback(request);
 }

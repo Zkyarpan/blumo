@@ -26,6 +26,13 @@ referenced by `context/specs/06-github-app-installation-start.md`.
    > App on GitHub, GitHub redirects to the Setup URL with an
    > `installation_id` query parameter. The Callback URL field can be left
    > empty until a future unit requires user-to-app OAuth.
+   >
+   > Website sign-in is separate and owned by Supabase Auth. Do not put
+   > `/api/github/callback` in the repository GitHub App's Setup URL. If the
+   > same GitHub App OAuth credentials are deliberately used as Supabase's
+   > GitHub provider, its OAuth Callback URL must be
+   > `https://qznladkcqldqktqyrrzi.supabase.co/auth/v1/callback`; Supabase then
+   > redirects the browser to Blumo's `/api/github/callback`.
 
 3. Under **Webhook**, set **Active** to **checked**. The Unit 09 endpoint is
    `POST /api/github/webhook`; GitHub must be able to reach it through HTTPS.
@@ -199,8 +206,8 @@ Also configure under **Authentication → URL Configuration**:
 
 | Field | Local development | Production |
 |---|---|---|
-| Site URL | `http://localhost:3000` | `https://yourdomain.com` |
-| Redirect URLs | `http://localhost:3000/**` | `https://yourdomain.com/**` |
+| Site URL | `http://localhost:3000` | `https://blumo-ten.vercel.app` |
+| Redirect URLs | `http://localhost:3000/api/github/callback` | `https://blumo-ten.vercel.app/api/github/callback` |
 
 ### Supabase Auth Email Templates
 
@@ -223,8 +230,10 @@ application's Resend product email code.
 When deploying to Vercel:
 
 - Create a separate **Blumo** (production) GitHub App.
-- Set Homepage URL and Setup URL to the production domain.
-- Activate webhooks and point them at the production webhook endpoint.
+- Set Homepage URL to `https://blumo-ten.vercel.app`.
+- Set Setup URL to `https://blumo-ten.vercel.app/api/github/setup`.
+- Activate webhooks and set the Webhook URL to
+  `https://blumo-ten.vercel.app/api/github/webhook`.
 - Change visibility to **Public** only if you want any GitHub user to be
   able to install; keep it **Private** for the closed beta.
 - Add all environment variables to the Vercel project settings under

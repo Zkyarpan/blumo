@@ -2,12 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { publicEnv } from "@/lib/env/public";
+import { getAuthCallbackUrl } from "@/features/auth/auth-redirect";
 
 /**
  * Initiates the GitHub OAuth flow via Supabase Auth.
  * Redirects the user to the GitHub authorization page.
- * The callback is handled by /api/auth/callback.
+ * The callback is handled by /api/github/callback.
  */
 export async function signInWithGitHub() {
   const supabase = await createSupabaseServerClient();
@@ -15,7 +15,7 @@ export async function signInWithGitHub() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "github",
     options: {
-      redirectTo: `${publicEnv.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+      redirectTo: getAuthCallbackUrl(),
       scopes: "read:user user:email",
     },
   });
