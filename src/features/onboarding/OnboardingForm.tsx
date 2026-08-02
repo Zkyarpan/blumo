@@ -85,7 +85,7 @@ export function OnboardingForm() {
       experience_level: "beginner" as ExperienceLevel,
       daily_minutes: 30,
       task_type: "learning_note" as TaskType,
-      timezone: "UTC",
+      timezone: "Europe/London",
     },
   });
 

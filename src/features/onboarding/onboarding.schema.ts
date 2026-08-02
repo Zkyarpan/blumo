@@ -14,8 +14,12 @@ export const TASK_TYPES = [
 ] as const;
 export type TaskType = (typeof TASK_TYPES)[number];
 
-/** Curated IANA timezone list covering all UTC offsets. */
+/** Curated IANA timezone list covering all UTC offsets.
+ *  Europe/London is listed first — it covers both GMT (winter) and BST (summer)
+ *  automatically, so UK users never have to think about daylight saving time.
+ */
 export const TIMEZONES = [
+  { label: "(GMT/BST) Europe/London — United Kingdom", value: "Europe/London" },
   { label: "(UTC−11:00) Pacific/Midway",      value: "Pacific/Midway" },
   { label: "(UTC−10:00) Pacific/Honolulu",    value: "Pacific/Honolulu" },
   { label: "(UTC−09:00) America/Anchorage",   value: "America/Anchorage" },
@@ -27,7 +31,6 @@ export const TIMEZONES = [
   { label: "(UTC−03:00) America/Sao_Paulo",   value: "America/Sao_Paulo" },
   { label: "(UTC−01:00) Atlantic/Azores",     value: "Atlantic/Azores" },
   { label: "(UTC+00:00) UTC",                 value: "UTC" },
-  { label: "(UTC+00:00) Europe/London",       value: "Europe/London" },
   { label: "(UTC+01:00) Europe/Paris",        value: "Europe/Paris" },
   { label: "(UTC+02:00) Europe/Helsinki",     value: "Europe/Helsinki" },
   { label: "(UTC+03:00) Europe/Moscow",       value: "Europe/Moscow" },

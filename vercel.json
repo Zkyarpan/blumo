@@ -7,7 +7,7 @@
     },
     {
       "path": "/api/cron/daily-missions",
-      "schedule": "0 * * * *"
+      "schedule": "0 9 * * *"
     }
   ]
 }

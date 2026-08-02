@@ -37,6 +37,51 @@ to `.env.local`, set `POLLINATIONS_API_KEY`, and optionally override
 `POLLINATIONS_TEXT_MODEL` (the default is `openai`). Never prefix either value
 with `NEXT_PUBLIC_`.
 
+## Auto-Commit Daily Missions (UK / London Time)
+
+Blumo automatically generates and commits a daily learning mission to GitHub
+every day at **09:00 AM London time** (09:00 GMT in winter, 10:00 BST in summer).
+The system uses `Europe/London` as the schedule timezone so it adjusts
+automatically for daylight saving time — no manual changes needed.
+
+### How it works
+
+1. **Vercel Cron** in [`vercel.json`](./vercel.json) triggers `GET /api/cron/daily-missions` at `09:00 UTC`.
+2. **GitHub Actions** in [`.github/workflows/daily-missions.yml`](.github/workflows/daily-missions.yml) provides a reliable fallback at the same time.
+3. The route finds all users with a due auto-commit schedule and runs the generate → auto-approve → commit pipeline for each.
+
+### Required setup — Vercel Production environment variables
+
+These must be set in **Vercel → Project → Settings → Environment Variables** under the **Production** environment:
+
+| Variable | Where to get it |
+|---|---|
+| `CRON_SECRET` | Same value as in your `.env.local` — generate with `openssl rand -hex 32` |
+| All other vars from `.env.example` | As documented in `.env.example` |
+
+> ⚠️ If `CRON_SECRET` is not set on Vercel Production, every cron invocation returns **401 Unauthorized** and no commits are triggered.
+
+### Required setup — GitHub Actions secrets
+
+In **GitHub → Repository → Settings → Secrets and variables → Actions**, add:
+
+| Secret | Value |
+|---|---|
+| `BLUMO_APP_URL` | Your Vercel production URL, e.g. `https://blumo-ten.vercel.app` |
+| `CRON_SECRET` | Same value as the Vercel `CRON_SECRET` |
+
+### User timezone setup
+
+When a user completes onboarding or updates their schedule:
+
+- Timezone defaults to **Europe/London** (covers both GMT and BST automatically).
+- The auto-commit schedule stores the user's chosen local time and timezone.
+- After each commit, the next run is recalculated to the same local clock time, so it stays at e.g. 09:00 AM London even across BST/GMT transitions.
+
+If an existing user's timezone is set to `UTC` (not London), they will see a
+warning in **Settings → Auto-commit** prompting them to go to Onboarding and
+select **Europe/London — United Kingdom**.
+
 ## Supabase Keep-Alive
 
 Production includes a protected Vercel Cron request to

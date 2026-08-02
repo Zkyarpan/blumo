@@ -42,7 +42,9 @@ export function AutoCommitSettings({
   userTimezone,
 }: AutoCommitSettingsProps) {
   const [selectedTime, setSelectedTime] = useState(schedule?.localTime ?? "09:00");
-  const isUtc = userTimezone === "UTC" || userTimezone === "Etc/UTC";
+  // Warn only when timezone is literally UTC (not a real city/region), which
+  // means the user likely did not set their timezone during onboarding.
+  const isUtc = userTimezone === "UTC" || userTimezone === "Etc/UTC" || userTimezone === "Etc/GMT";
 
   const [saveState, saveAction, savePending] = useActionState<ScheduleActionResult | null, FormData>(
     saveAutoCommitScheduleAction,
@@ -189,9 +191,11 @@ export function AutoCommitSettings({
           <div className="flex items-start gap-1.5 text-xs rounded-lg border p-2.5" style={{ borderColor: "var(--state-warning)", color: "var(--state-warning)", backgroundColor: "var(--bg-surface)" }}>
             <Info className="size-3.5 mt-0.5 shrink-0" aria-hidden="true" />
             <span>
-              Your timezone is set to UTC. Go to{" "}
-              <a href="/settings" className="underline underline-offset-2">Settings → Profile</a>{" "}
-              and update onboarding to set your real timezone so commits happen at a sensible local time.
+              Your timezone is set to UTC, not a local timezone. If you are in the UK,{" "}
+              go to{" "}
+              <a href="/onboarding" className="underline underline-offset-2">Onboarding</a>{" "}
+              and select <strong>Europe/London — United Kingdom</strong> so commits happen
+              at the correct local time and automatically adjust for GMT/BST.
             </span>
           </div>
         )}

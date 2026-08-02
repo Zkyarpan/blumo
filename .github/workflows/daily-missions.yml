@@ -1,0 +1,55 @@
+name: Daily Auto-Commit Trigger
+
+# Runs every day at 09:00 UTC (09:00 GMT / 10:00 BST — London time)
+# This is the primary trigger for the Blumo auto-commit pipeline.
+# Vercel's own cron in vercel.json also runs as a secondary trigger.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   BLUMO_APP_URL    — production URL, e.g. https://blumo-ten.vercel.app
+#   CRON_SECRET      — same value set in Vercel Production environment variables
+
+on:
+  schedule:
+    # 09:00 UTC daily — 09:00 GMT (winter) / 10:00 BST (summer)
+    - cron: "0 9 * * *"
+  workflow_dispatch: # allow manual trigger from GitHub Actions tab
+
+jobs:
+  trigger-daily-missions:
+    name: Trigger daily missions cron
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Ping daily-missions cron endpoint
+        env:
+          BLUMO_APP_URL: ${{ secrets.BLUMO_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          echo "Triggering daily missions at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+
+          HTTP_STATUS=$(curl --silent --output /tmp/cron_response.json \
+            --write-out "%{http_code}" \
+            --max-time 120 \
+            --retry 2 \
+            --retry-delay 10 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            "${BLUMO_APP_URL}/api/cron/daily-missions")
+
+          echo "HTTP status: ${HTTP_STATUS}"
+          echo "Response body:"
+          cat /tmp/cron_response.json || true
+
+          if [ "${HTTP_STATUS}" -eq 200 ]; then
+            echo "✅ Cron triggered successfully."
+          elif [ "${HTTP_STATUS}" -eq 503 ]; then
+            echo "⚠️  Cron returned 503 — CRON_SECRET may not be configured in Vercel."
+            exit 1
+          elif [ "${HTTP_STATUS}" -eq 401 ]; then
+            echo "❌ Unauthorized — check that CRON_SECRET secret matches Vercel env var."
+            exit 1
+          else
+            echo "❌ Unexpected status ${HTTP_STATUS}"
+            exit 1
+          fi

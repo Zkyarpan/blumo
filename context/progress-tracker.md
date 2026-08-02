@@ -123,16 +123,39 @@ Manual verification checklist (from spec §14):
   across 50 files, production build clean with 20 routes.
 - First real commit verified: `Zkyarpan/blumo` SHA `88873e89` on Jul 30 2026.
 - Schedule active: daily at 00:00 UTC, next run Fri Jul 31 12:00 AM.
+- **UK timezone fix applied**: `advance_schedule_next_run` rewritten as
+  migration 21 to compute next run at the same local clock time in the stored
+  timezone (BST/GMT-aware). Previous implementation added a flat 24 h and
+  drifted by one hour at daylight saving transitions.
+- **GitHub Actions daily trigger added**: `.github/workflows/daily-missions.yml`
+  runs at `0 9 * * *` UTC and hits `/api/cron/daily-missions` with the
+  `CRON_SECRET` bearer token. Requires `BLUMO_APP_URL` and `CRON_SECRET`
+  secrets in GitHub repository settings.
+- **Vercel cron updated**: `vercel.json` daily-missions schedule changed from
+  hourly (`0 * * * *`) to once daily at `0 9 * * *` UTC (09:00 London time).
+- **Onboarding defaults updated**: `OnboardingForm` defaults timezone to
+  `Europe/London`; timezone list puts London first with a clear UK label.
+- **UTC warning improved**: `AutoCommitSettings` warns UTC users to re-run
+  onboarding and select Europe/London — United Kingdom.
+- README updated with complete UK auto-commit setup guide including Vercel and
+  GitHub Actions secrets that must be configured for production.
 
 ## Next Up
 
-1. Configure the same `CRON_SECRET` value in the Vercel Production environment
-   and deploy `vercel.json` so the daily cron becomes active.
-2. Apply migration 20240001000018 to hosted Supabase project (if not already applied).
-3. Complete integration stabilization pass.
-4. Manually verify all checklist items above.
-5. Merge Unit 12 into main.
-6. Do not begin Unit 13.
+1. **Add `CRON_SECRET` to Vercel Production**: Vercel → Project → Settings →
+   Environment Variables → Production. Use the same value as in `.env.local`.
+   Without this, every cron invocation returns 401 and no commits run.
+2. **Add GitHub Actions secrets**: GitHub → Repository → Settings → Secrets →
+   Actions. Add `BLUMO_APP_URL` (your Vercel URL) and `CRON_SECRET` (same value).
+3. **Apply migration 21** to hosted Supabase:
+   `supabase/migrations/20240001000021_timezone_aware_schedule_advance.sql`
+4. **Re-save the auto-commit schedule** in the app (Settings → Auto-commit)
+   after setting timezone to `Europe/London` so `next_run_at` is recalculated.
+5. Apply migration 20240001000018 to hosted Supabase project (if not already applied).
+6. Complete integration stabilization pass.
+7. Manually verify all checklist items above.
+8. Merge Unit 12 into main.
+9. Do not begin Unit 13.
 
 ## Open Questions
 
