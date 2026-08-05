@@ -255,3 +255,4 @@ Sign in with GitHub
 4. Blumo requests the minimum GitHub permissions required.
 5. Repository files and AI output are treated as untrusted input.
 6. The MVP remains deliberately small until the complete core flow works.
+.
